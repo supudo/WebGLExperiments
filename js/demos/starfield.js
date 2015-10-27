@@ -7,6 +7,7 @@ function Starfield(gl, gameCanvas) {
   var texturesLoaded = false;
   var yTranslation = -1;
   var translation = [0, 0];
+  var rotation = [0, 1];
 
   var starTextures = [];
   var glTextures = [];
@@ -124,7 +125,8 @@ function Starfield(gl, gameCanvas) {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-    gl.uniform1i(doRotationLocation, STARS_DO_ROTATION);
+    //gl.uniform1i(doRotationLocation, STARS_DO_ROTATION);
+    gl.uniform1i(doRotationLocation, false);
 
     this.updateVertices();
   };
@@ -172,19 +174,28 @@ function Starfield(gl, gameCanvas) {
 
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, starTextures[texture]);
 
-      var moveOriginMatrix = this.makeTranslation(translation[0], translation[1]);
-      var matrix = moveOriginMatrix;
+      //translation[1] = translation[1] + 1;
+      //var moveOriginMatrix = this.makeTranslation(translation[0], translation[1]);
+      //var matrix = moveOriginMatrix;
 
+      /*
       if (STARS_DO_ROTATION) {
         var rads = this.getAngleInRadians(rotationAngle);
-        var translationMatrix = this.makeTranslation(translation[0], translation[1]);
+        //var translationMatrix = this.makeTranslation(translation[0], translation[1]);
+        var translationMatrix = this.makeTranslation(x1, y1);
         var rotationMatrix = this.makeRotation(rads);
 
         matrix = this.matrixMultiply(matrix, translationMatrix);
         matrix = this.matrixMultiply(matrix, rotationMatrix);
       }
+      */
 
-      gl.uniformMatrix3fv(matrixLocation, false, matrix);
+      //gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+      translation[1] = translation[1] + 1;
+      gl.uniform2fv(translationLocation, translation);
+      gl.uniform2fv(rotationLocation, rotation);
+      showMessage('translation[1] = ' + translation[1] + '; rotation = ' + rotation);
 
       var v = [x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2];
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);

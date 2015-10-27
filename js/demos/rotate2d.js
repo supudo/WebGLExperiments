@@ -78,20 +78,19 @@ function Rotate2D(gl, gameCanvas) {
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     var v = this.setGeometry(0);
-    gl.uniform1i(newRotationLocation, false);//STARS_DO_ROTATION);
+    //gl.uniform1i(newRotationLocation, STARS_DO_ROTATION);
+    gl.uniform1i(newRotationLocation, false);
 
     gl.uniform4f(colorLocation, 1, 1, 1, 1);
 
     var rads = this.getAngleInRadians(animAngle);
 
-    translation = [translation[0], translation[1] + 1];
+    //translation = [translation[0], translation[1]];
     var moveOriginMatrix = this.makeTranslation(200, 300);
-    var scaleMatrix = this.makeScale(scale[0], scale[1]);
     var translationMatrix = this.makeTranslation(translation[0], translation[1]);
     var rotationMatrix = this.makeRotation(rads);
 
     var matrix = moveOriginMatrix;
-    matrix = this.matrixMultiply(matrix, scaleMatrix);
     matrix = this.matrixMultiply(matrix, translationMatrix);
     matrix = this.matrixMultiply(matrix, rotationMatrix);
 
@@ -198,14 +197,6 @@ function Rotate2D(gl, gameCanvas) {
     return [
       c,-s, 0,
       s, c, 0,
-      0, 0, 1
-    ];
-  };
-
-  this.makeScale = function(sx, sy) {
-    return [
-      sx, 0, 0,
-      0, sy, 0,
       0, 0, 1
     ];
   };
