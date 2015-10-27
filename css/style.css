@@ -1,0 +1,55 @@
+body {
+  margin: 0px;
+  background-color: #130217; /* #480E61; */
+}
+
+h3 {
+  color: #ffffff;
+}
+
+.game_panel {
+  border: 1px solid #ffffff;
+  width: 500px;
+  height: 600px;
+  margin-left: 4px;
+  margin: 0 auto;
+}
+
+.game_panel_messages {
+  width: 600px;
+  height: 400px;
+}
+
+.game_panel_exceptions {
+  width: 600px;
+  height: 180px;
+}
+
+.messages {
+  background-color: #222222;
+  overflow: auto;
+}
+
+.game_messages {
+  text-align: left;
+  padding: 10px;
+}
+
+.game_messages_log {
+  color: #F8F8F8;
+}
+
+.game_messages_exception {
+  font-weight: bold;
+  color: #F8080B;
+}
+
+.checkbox {
+  color: #000000;
+  font-size: 14px;
+}
+
+.checkbox-white div {
+  color: #ffffff;
+  font-size: 16px;
+}
