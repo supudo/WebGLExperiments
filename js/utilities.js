@@ -182,6 +182,17 @@ function validateNoneOfTheArgsAreUndefined(functionName, args) {
 
 function printStar(op, i, star) {
   var output = '\n';
+  output += 'x = ' + star.x + ', y = ' + star.y + '\n';
+  output += 'velocity = [' + star.velocity + ']\n';
+  output += 'size = [' + star.starSize + ']\n';
+  output += 'texture = [' + star.texture + ']\n';
+  output += 'rotation speed = [' + star.rotationSpeed + ']\n';
+  output += 'rotation angle = ' + star.rotationAngle + '&deg; - ' + (star.rotationDirection == 0 ? 'clockwise' : 'anti-clockwise') +  '\n';
+  showMessage('<pre><code>[Star # ' + i + ' - ' + op + ']' + output + '</code></pre>');
+}
+
+function printStar2(op, i, star) {
+  var output = '\n';
   output += 'p1 = [' + star.x1 + ', ' + star.y1 + ']\n';
   output += 'p2 = [' + star.x2 + ', ' + star.y1 + ']\n';
   output += 'p3 = [' + star.x1 + ', ' + star.y2 + ']\n';
