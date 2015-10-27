@@ -193,6 +193,6 @@ function printStar(op, i, star) {
   output += 'size = [' + star.starSize + ']\n';
   output += 'texture = [' + star.texture + ']\n';
   output += 'rotation speed = [' + star.rotationSpeed + ']\n';
-  output += 'angle = [' + star.rotationAngle + '] / ' + (star.rotationDirection == 0 ? 'clockwise' : 'anti-clockwise') +  '\n';
+  output += 'rotation angle = ' + star.rotationAngle + '&deg; - ' + (star.rotationDirection == 0 ? 'clockwise' : 'anti-clockwise') +  '\n';
   showMessage('<pre><code>[Star # ' + i + ' - ' + op + ']' + output + '</code></pre>');
 }
