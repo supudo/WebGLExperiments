@@ -189,11 +189,6 @@
         canvas.width = width;
         canvas.height = height;
       }
-    } else if (!options.noTitle && options.title !== false) {
-      var title = document.title;
-      var h1 = document.createElement("h1");
-      h1.innerText = title;
-      document.body.insertBefore(h1, document.body.children[0]);
     }
 
     var gl = setupWebGL(canvas, opt_attribs);

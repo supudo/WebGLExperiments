@@ -7,11 +7,20 @@ function Hypersuit(gl, gameCanvas) {
   var texturesLoaded = false;
   var yTranslation = -1;
 
-  var starTextures = [];
-  var glTextures = [];
-  var starTexturesCount = 5;
+  var allTexturesImages = 
+    [
+      "../images/star0.png",
+      "../images/star1.png",
+      "../images/star2.png",
+      "../images/star3.png",
+      "../images/star4.png",
+      "../images/player1.png"
+    ];
 
-  var bufferTextures, bufferDrawing;
+  var allTextures = [];
+  var glTextures = [];
+
+  var bufferTextures, bufferDrawingStars, bufferDrawingPlayer;
 
   var positionLocation, resolutionLocation, texCoordLocation, matrixLocation;
 
@@ -30,21 +39,11 @@ function Hypersuit(gl, gameCanvas) {
     stars = new Array();
     starsVertices = new Array();
 
-    this.initVertices();
+    this.initStars();
     this.initTextures();
     this.initShaders();
 
-    loadImages(
-      [
-        "../images/star0.png",
-        "../images/star1.png",
-        "../images/star2.png",
-        "../images/star3.png",
-        "../images/star4.png",
-        "../images/player1.png"
-      ],
-      this.starTexturesLoaded
-    );
+    loadImages(allTexturesImages, this.starTexturesLoaded);
   };
 
   this.changeSettings = function() {
@@ -67,7 +66,8 @@ function Hypersuit(gl, gameCanvas) {
     gl.deleteShader(shaderFragment);
     gl.deleteShader(shaderVertex);
     gl.deleteBuffer(bufferTextures);
-    gl.deleteBuffer(bufferDrawing);
+    gl.deleteBuffer(bufferDrawingStars);
+    gl.deleteBuffer(bufferDrawingPlayer);
     gl.deleteProgram(shaderProgram);
   };
 
@@ -77,7 +77,7 @@ function Hypersuit(gl, gameCanvas) {
 
   this.starTexturesLoaded = function(images) {
     showMessageInfo('[Hypersuit] - StarTexturesLoaded - init - image loaded');
-    starTextures = images;
+    allTextures = images;
     texturesLoaded = true;
   };
 
@@ -102,7 +102,8 @@ function Hypersuit(gl, gameCanvas) {
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
 
     bufferTextures = gl.createBuffer();
-    bufferDrawing = gl.createBuffer();
+    bufferDrawingStars = gl.createBuffer();
+    bufferDrawingPlayer = gl.createBuffer();
   };
 
   this.drawScene = function() {
@@ -116,15 +117,41 @@ function Hypersuit(gl, gameCanvas) {
 
     gl.uniform2f(resolutionLocation, gameCanvas.width, gameCanvas.height);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferDrawing);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferDrawingStars);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-    this.updateVertices();
+    this.updateStars();
+    this.updatePlayer();
   };
 
-  this.updateVertices = function() {
-    showMessageInfo('[Hypersuit] - UpdateVertices');
+  /*
+   *
+   * Player =================================================
+   *
+   */
+
+  this.updatePlayer = function() {
+    showMessageInfo('[Hypersuit] - updatePlayer');
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 1]);
+
+    var matrix = this.makeTranslation((PlayerSize / 2) * -1, (PlayerSize / 2) * -1);
+    gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+    this.setPlayerGeometry();
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  };
+
+  /*
+   *
+   * Stars =================================================
+   *
+   */
+
+  this.updateStars = function() {
+    showMessageInfo('[Hypersuit] - updateStars');
     for (var i=0; i<STARS_NUM; i++) {
       star = stars[i];
 
@@ -161,7 +188,7 @@ function Hypersuit(gl, gameCanvas) {
       star = new Star(star.x, star.y, star.translation, star.rotation, velocity, starSize, texture, rotationSpeed, rotationAngle, rotationDirection);
       stars[i] = star;
 
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, starTextures[texture]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[texture]);
 
       var angleInRadians = this.getAngleInRadians(star.rotationAngle);
       var moveOriginMatrix = this.makeTranslation((star.starSize / 2) * -1, (star.starSize / 2) * -1);
@@ -178,9 +205,72 @@ function Hypersuit(gl, gameCanvas) {
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      printStar('UPDATE', i, star);
+      //printStar('UPDATE', i, star);
     }
   };
+
+  /*
+   *
+   * Init =================================================
+   *
+   */
+
+  this.initTextures = function() {
+    showMessageInfo('[Hypersuit] - initTextures');
+    for (var i=0; i<allTexturesImages.length; i++) {
+      var texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      glTextures[i] = texture;
+    }
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  };
+
+  this.initStars = function() {
+    showMessageInfo('[Hypersuit] - initStars');
+
+    var vertices = [];
+    for (var i=0; i<STARS_NUM; i++) {
+      x = parseInt(getRandom(gameCanvas.width));
+      y = -1;//parseInt(getRandom(gameCanvas.height));
+      var velocity = parseInt(getRandom(STARS_VELOCITY));
+      var starSize = (STARS_NUM > 1 ? parseInt(getRandom(STARS_SIZE)) : STARS_SIZE);
+      var texture = parseInt(getRandomFromZero(5));
+      var rotationSpeed = parseInt(getRandomFromZero(STARS_ROTATION_SPEED));
+      var rotationDirection = parseInt(getRandomFromZero(2));
+      var translation = [x, y];
+      var rotation = [0, 1];
+
+      var star = new Star(x, y, translation, rotation, velocity, starSize, texture, rotationSpeed, 0, rotationDirection);
+      stars.push(star);
+      //printStar('INIT', i, star);
+    }
+  };
+
+  this.buildStarTextureBuffer = function() {
+    showMessageInfo('[Hypersuit] - buildStarTextureBuffer');
+    var vertices = [];
+    // Stars
+    for (var i=0; i<STARS_NUM; i++) {
+      vertices = vertices.concat(this.getSingleTextureMatrix());
+    }
+    // Player
+    vertices = vertices.concat(this.getSingleTextureMatrix());
+    return vertices;
+  };
+
+  this.getSingleTextureMatrix = function() {
+    showMessageInfo('[Hypersuit] - getSingleTextureMatrix');
+    return [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
+  }
+
+  /*
+   *
+   * Geometries =================================================
+   *
+   */
 
   this.setStarGeometry = function(star) {
     var x = 0;
@@ -204,47 +294,33 @@ function Hypersuit(gl, gameCanvas) {
     );
   };
 
-  this.initVertices = function() {
-    showMessageInfo('[Hypersuit] - InitVertices');
+  this.setPlayerGeometry = function() {
+    var x = gameCanvas.width / 2;
+    var y = gameCanvas.height - PlayerSize - 10;
+    var x1 = x;
+    var x2 = x + PlayerSize;
+    var y1 = y;
+    var y2 = y + PlayerSize;
 
-    var vertices = [];
-    for (var i=0; i<STARS_NUM; i++) {
-      x = parseInt(getRandom(gameCanvas.width));
-      y = -1;//parseInt(getRandom(gameCanvas.height));
-      var velocity = parseInt(getRandom(STARS_VELOCITY));
-      var starSize = (STARS_NUM > 1 ? parseInt(getRandom(STARS_SIZE)) : STARS_SIZE);
-      var texture = parseInt(getRandomFromZero(5));
-      var rotationSpeed = parseInt(getRandomFromZero(STARS_ROTATION_SPEED));
-      var rotationDirection = parseInt(getRandomFromZero(2));
-      var translation = [x, y];
-      var rotation = [0, 1];
-
-      var star = new Star(x, y, translation, rotation, velocity, starSize, texture, rotationSpeed, 0, rotationDirection);
-      stars.push(star);
-      //printStar('INIT', i, star);
-    }
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        x1, y1,
+        x2, y1,
+        x1, y2,
+        x1, y2,
+        x2, y1,
+        x2, y2
+      ]),
+      gl.STATIC_DRAW
+    );
   };
 
-  this.initTextures = function() {
-    for (var i=0; i<starTexturesCount; i++) {
-      var texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      glTextures[i] = texture;
-    }
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  };
-
-  this.buildStarTextureBuffer = function() {
-    showMessageInfo('[Hypersuit] - BuildStarTextureBuffer');
-    var vertices = [];
-    for (var i=0; i<STARS_NUM; i++) {
-      vertices.push(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0);
-    }
-    return vertices;
-  };
+  /*
+   *
+   * Calculations =================================================
+   *
+   */
 
   this.updateRotation = function(angleValue, direction, rotation) {
     var angleInDegrees = 360 - angleValue;

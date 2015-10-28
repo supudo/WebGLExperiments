@@ -29,13 +29,15 @@ var frames = 0;
 var pMatrix = mat4.create();
 var starsBuffer;
 
-var STARS_NUM = 50;
+var STARS_NUM = 10;
 var STARS_FRAME_LIMIT = 16;
 var STARS_MOVEMENT = 2;
 var STARS_SIZE = (STARS_NUM > 1 ? 50 : 100);
 var STARS_VELOCITY = 10;
 var STARS_ROTATION_SPEED = 10;
 var STARS_DO_ROTATION = true;
+
+var PlayerSize = 40;
 
 var stars = Array();
 var starsVertices = Array();

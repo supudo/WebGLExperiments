@@ -42,7 +42,8 @@ function release() {
   $('#game_background').css("background-image", "url()");  
   gl.canvas.width = 1;
   gl.canvas.height = 1;
-  currentDemo.release();
+  if (currentDemo != null && typeof currentDemo == "undefined")
+    currentDemo.release();
 }
 
 function runGame(gameCanvas) {
