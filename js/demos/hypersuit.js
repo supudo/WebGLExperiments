@@ -1,4 +1,4 @@
-function Starfield(gl, gameCanvas) {
+function Hypersuit(gl, gameCanvas) {
 
   //
   // Variables =================================================
@@ -23,7 +23,7 @@ function Starfield(gl, gameCanvas) {
   //
 
   this.init = function() {
-    showMessageInfo('[Starfield] - init');
+    showMessageInfo('[Hypersuit] - init');
     $('#game_background').css("background-image", "url(../images/background0.png)");  
 
     yTranslation = -1;
@@ -40,20 +40,21 @@ function Starfield(gl, gameCanvas) {
         "../images/star1.png",
         "../images/star2.png",
         "../images/star3.png",
-        "../images/star4.png"
+        "../images/star4.png",
+        "../images/player1.png"
       ],
       this.starTexturesLoaded
     );
   };
 
   this.changeSettings = function() {
-    showMessageInfo('[Starfield] - changeSettings');
+    showMessageInfo('[Hypersuit] - changeSettings');
     starsVertices = this.initVertices();
   };
 
   this.run = function(frames) {
     if (texturesLoaded) {
-      showMessageInfo('[Starfield] - run');
+      showMessageInfo('[Hypersuit] - run');
       yTranslation = frames;
       this.drawScene();
     }
@@ -75,15 +76,15 @@ function Starfield(gl, gameCanvas) {
   //
 
   this.starTexturesLoaded = function(images) {
-    showMessageInfo('[Starfield] - StarTexturesLoaded - init - image loaded');
+    showMessageInfo('[Hypersuit] - StarTexturesLoaded - init - image loaded');
     starTextures = images;
     texturesLoaded = true;
   };
 
   this.initShaders = function() {
-    showMessageInfo('[Starfield] - InitShaders');
-    shaderFragment = compileShaderFromSource(gl, "../shaders/starfield.fs", gl.FRAGMENT_SHADER);
-    shaderVertex = compileShaderFromSource(gl, "../shaders/starfield.vs", gl.VERTEX_SHADER);
+    showMessageInfo('[Hypersuit] - InitShaders');
+    shaderFragment = compileShaderFromSource(gl, "../shaders/hypersuit.fs", gl.FRAGMENT_SHADER);
+    shaderVertex = compileShaderFromSource(gl, "../shaders/hypersuit.vs", gl.VERTEX_SHADER);
 
     shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, shaderVertex);
@@ -105,7 +106,7 @@ function Starfield(gl, gameCanvas) {
   };
 
   this.drawScene = function() {
-    showMessageInfo('[Starfield] - DrawScene');
+    showMessageInfo('[Hypersuit] - DrawScene');
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
 
     var textureVertices = this.buildStarTextureBuffer();
@@ -123,7 +124,7 @@ function Starfield(gl, gameCanvas) {
   };
 
   this.updateVertices = function() {
-    showMessageInfo('[Starfield] - UpdateVertices');
+    showMessageInfo('[Hypersuit] - UpdateVertices');
     for (var i=0; i<STARS_NUM; i++) {
       star = stars[i];
 
@@ -204,7 +205,7 @@ function Starfield(gl, gameCanvas) {
   };
 
   this.initVertices = function() {
-    showMessageInfo('[Starfield] - InitVertices');
+    showMessageInfo('[Hypersuit] - InitVertices');
 
     var vertices = [];
     for (var i=0; i<STARS_NUM; i++) {
@@ -237,7 +238,7 @@ function Starfield(gl, gameCanvas) {
   };
 
   this.buildStarTextureBuffer = function() {
-    showMessageInfo('[Starfield] - BuildStarTextureBuffer');
+    showMessageInfo('[Hypersuit] - BuildStarTextureBuffer');
     var vertices = [];
     for (var i=0; i<STARS_NUM; i++) {
       vertices.push(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0);

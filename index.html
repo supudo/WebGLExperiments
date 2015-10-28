@@ -17,9 +17,11 @@
     <script type="text/javascript" src="js/webgl/webgl-debug.js"></script>
     <script type="text/javascript" src="js/webgl/gl-matrix.js"></script>
     <script type="text/javascript" src="js/webgl/texture_loader.js"></script>
+    <script type="text/javascript" src="js/misc/vars.js"></script>
+    <script type="text/javascript" src="js/misc/variables.js"></script>
     <script type="text/javascript" src="js/variables.js"></script>
-    <script type="text/javascript" src="js/objects.js"></script>
-    <script type="text/javascript" src="js/utilities.js"></script>
+    <script type="text/javascript" src="js/misc/objects.js"></script>
+    <script type="text/javascript" src="js/misc/utilities.js"></script>
   </head>
   <body>
 
@@ -30,83 +32,18 @@
 
       <div class="row">
         <!-- Demo selection -->
-        <div class="col-xs-6 col-sm-3">
+        <div class="col-md-6 text-left">
           <div class="dropdown">
             <button class="btn btn-default dropdown-toggle" type="button" id="ddDemo" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
               <span id="demo_title">Select Demo</span>
               <span class="caret"></span>
             </button>
-            <ul id="dd_demos" class="dropdown-menu" aria-labelledby="ddDemo" style="left: 45%;"></ul>
+            <ul id="dd_demos" class="dropdown-menu" aria-labelledby="ddDemo"></ul>
           </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="col-xs-6 col-sm-3">
-          <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#modal_settings">
-            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-          </button>
-          <div class="modal fade text-left" id="modal_settings" tabindex="-1" role="dialog" aria-labelledby="modal_settings_title" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                  <h4 class="modal-title" id="modal_settings_title">Settings</h4>
-                </div>
-                <div class="modal-body">
-                  <fieldset>
-                    <div class="form-group">
-                      <div class="checkbox"><label><input type="checkbox" id="log_calls1"> Log Calls</label></div>
-                      <div class="checkbox"><label><input type="checkbox" id="gl_calls"> WebGL Calls</label></div>
-                      <div class="checkbox"><label><input type="checkbox" id="log_info"> Info Log</label></div>
-                      <div class="checkbox"><label><input type="checkbox" id="slowmo"> SlowMo</label></div>
-                      <div class="checkbox"><label><input type="checkbox" id="do_rotation"> Star Rotation</label></div>
-                    </div>
-                    <div class="form-group">
-                      <label class="control-label">SlowMo framerate:</label>
-                      <input type="text" id="slowmo_framerate" class="form-control" placeholder="5" />
-                    </div>
-                    <div class="form-group">
-                      <label class="control-label">Number of stars:</label>
-                      <input type="text" id="stars_num" class="form-control" placeholder="2" />
-                    </div>
-                    <div class="form-group">
-                      <label class="control-label">Maximum star size:</label>
-                      <input type="text" id="star_size" class="form-control" placeholder="3" />
-                    </div>
-                    <div class="form-group">
-                      <label class="control-label">Maximum star velocity:</label>
-                      <input type="text" id="star_velocity" class="form-control" placeholder="1" />
-                    </div>
-                    <div class="form-group">
-                      <label class="control-label">Star rotation speed (0 for no rotation):</label>
-                      <input type="text" id="rotation_speed" class="form-control" placeholder="0" />
-                    </div>
-                    <div class="form-group">
-                      <label class="control-label">Limit Log output:</label>
-                      <div class="input-group">
-                        <span class="input-group-addon">
-                          <input type="checkbox" id="limit_log" aria-label="10000">
-                        </span>
-                        <input type="text" id="log_length" class="form-control" aria-label="10000">
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-                <div class="modal-footer">
-                  <button id="closebtn" type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Log calls -->
-        <div class="col-xs-6 col-sm-3 checkbox-white">
-          <div class="checkbox"><label><input type="checkbox" id="log_calls2"> Log Calls</label></div>
         </div>
 
         <!-- Clear log -->
-        <div class="col-xs-6 col-sm-3">
+        <div class="col-md-6 text-right">
           <button type="button" class="btn btn-primary btn-md" onclick="clearLog();">Clear Log</button>
           <button type="button" class="btn btn-primary btn-md" onclick="clearExceptions();">Clear Exceptions</button>
         </div>
@@ -115,13 +52,55 @@
       <br />
 
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <div class="game_panel" id="game_background">
             <canvas id="game_canvas"></canvas>
           </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
+          <div class="game_ui">
+            <div class="form-group">
+              <div class="checkbox"><label><input type="checkbox" id="log_calls1"> Log Calls</label></div>
+              <div class="checkbox"><label><input type="checkbox" id="gl_calls"> WebGL Calls</label></div>
+              <div class="checkbox"><label><input type="checkbox" id="log_info"> Info Log</label></div>
+              <div class="checkbox"><label><input type="checkbox" id="slowmo"> SlowMo</label></div>
+              <div class="checkbox"><label><input type="checkbox" id="do_rotation"> Star Rotation</label></div>
+            </div>
+            <div class="form-group">
+              <label class="control-label">SlowMo framerate:</label>
+              <input type="text" id="slowmo_framerate" class="form-control" placeholder="5" />
+            </div>
+            <div class="form-group">
+              <label class="control-label">Number of stars:</label>
+              <input type="text" id="stars_num" class="form-control" placeholder="2" />
+            </div>
+            <div class="form-group">
+              <label class="control-label">Maximum star size:</label>
+              <input type="text" id="star_size" class="form-control" placeholder="3" />
+            </div>
+            <div class="form-group">
+              <label class="control-label">Maximum star velocity:</label>
+              <input type="text" id="star_velocity" class="form-control" placeholder="1" />
+            </div>
+            <div class="form-group">
+              <label class="control-label">Star rotation speed (0 for no rotation):</label>
+              <input type="text" id="rotation_speed" class="form-control" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label class="control-label">Limit Log output:</label>
+              <div class="input-group">
+                <span class="input-group-addon">
+                  <input type="checkbox" id="limit_log" aria-label="10000">
+                </span>
+                <input type="text" id="log_length" class="form-control" aria-label="10000">
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="col-md-4">
           <div class="game_panel game_panel_messages game_messages messages">
             <span id="game_messages" class="game_messages_log"></span>
           </div>
@@ -139,7 +118,9 @@
     <script type="text/javascript" src="js/demos/falling_star.js"></script>
     <script type="text/javascript" src="js/demos/texanim.js"></script>
     <script type="text/javascript" src="js/demos/rotate2d.js"></script>
-    <script type="text/javascript" src="js/main.js"></script>
-    <script type="text/javascript" src="js/ui.js"></script>
+    <script type="text/javascript" src="js/demos/starfieldts.js"></script>
+    <script type="text/javascript" src="js/demos/hypersuit.js"></script>
+    <script type="text/javascript" src="js/misc/main.js"></script>
+    <script type="text/javascript" src="js/misc/ui.js"></script>
   </body>
 </html>

@@ -18,7 +18,7 @@ function startGame(demoIndex) {
 
   gameCanvas.width = gameCanvasJQ.parent().width();
   gameCanvas.height = gameCanvasJQ.parent().height();
-  gl = WebGLUtils.setupWebGL(gameCanvas);
+  gl = getWebGLContext(gameCanvas);
   gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, logAndValidate);
 
   if (!gl)
@@ -31,7 +31,7 @@ function startGame(demoIndex) {
     gl.enable(gl.BLEND);
 
     mat4.ortho(0, gameCanvas.width, 0, gameCanvas.height, -1, 1, pMatrix);
-    if (demoIndex > 0)
+    if (demoIndex > 0) 
       runGame(gameCanvas);
     else
       release();
@@ -39,6 +39,7 @@ function startGame(demoIndex) {
 }
 
 function release() {
+  $('#game_background').css("background-image", "url()");  
   gl.canvas.width = 1;
   gl.canvas.height = 1;
   currentDemo.release();
@@ -49,7 +50,12 @@ function runGame(gameCanvas) {
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
   if (demoIndex > 0) {
-    eval('currentDemo = new ' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');
+    if (currentDemo != null && typeof currentDemo == "undefined")
+      currentDemo.release();
+    if (availableDemos[demoIndex][2] == 0)
+      eval('currentDemo = new ' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');
+    else
+      eval('currentDemo = new ' + availableDemos[demoIndex][3] + '.' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');
     currentDemo.init();
   }
   frames = 0;

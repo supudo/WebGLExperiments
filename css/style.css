@@ -7,21 +7,27 @@ h3 {
   color: #ffffff;
 }
 
+/*
+ *
+ * Game Elements
+ *
+ */
+
 .game_panel {
   border: 1px solid #ffffff;
-  width: 500px;
+  /* width: 400px; */
   height: 600px;
   margin-left: 4px;
   margin: 0 auto;
 }
 
 .game_panel_messages {
-  width: 600px;
+  /* width: 400px; */
   height: 400px;
 }
 
 .game_panel_exceptions {
-  width: 600px;
+  /* width: 400px; */
   height: 180px;
 }
 
@@ -42,6 +48,31 @@ h3 {
 .game_messages_exception {
   font-weight: bold;
   color: #F8080B;
+}
+
+/*
+ *
+ * Game UI
+ *
+ */
+
+.game_ui {
+  background-color: #222222;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  height: 600px;
+  overflow-y: scroll;
+  padding: 0 5px 0 5px;
+}
+
+.game_ui * {
+  color: #ffffff;
+  text-align: left;
+}
+
+.game_ui_title {
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .checkbox {
