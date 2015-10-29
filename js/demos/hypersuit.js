@@ -15,11 +15,6 @@ function Hypersuit(gl, gameCanvas) {
       "../images/star3.png",
       "../images/star4.png",
       "../images/bullet1_1.png",
-      "../images/bullet1_2.png",
-      "../images/bullet1_3.png",
-      "../images/bullet1_4.png",
-      "../images/bullet1_5.png",
-      "../images/bullet1_6.png",
       "../images/player1.png"
     ];
 
@@ -93,8 +88,8 @@ function Hypersuit(gl, gameCanvas) {
         this.player.x = this.player.x + PlayerMovement;
       else if (charCode == 40) // down
         this.player.y = this.player.y + PlayerMovement;
-      this.updatePlayer();
       this.updateBullets();
+      this.updatePlayer(true);
     }
   };
 
@@ -149,78 +144,13 @@ function Hypersuit(gl, gameCanvas) {
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     this.updateStars();
-    this.updatePlayer();
     this.updateBullets();
+    this.updatePlayer(false);
   };
 
   /*
    *
-   * Player =================================================
-   *
-   */
-
-  this.updatePlayer = function() {
-    showMessageInfo('[Hypersuit] - updatePlayer');
-
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 1]);
-
-    var x = this.player.x;
-    var y = this.player.y;
-
-    if (Math.abs(x) >= (gameCanvas.width / 2)) {
-      var xx = 0;
-      var loop = true;
-      if (loop) {
-        if (x <= 0)
-          xx = (gameCanvas.width / 2); 
-        else
-          xx = -1 * (gameCanvas.width / 2);
-      }
-      else {
-        if (x <= 0)
-          xx = -1 * (gameCanvas.width / 2);
-        else
-          xx = (gameCanvas.width / 2);
-      }
-      x = xx;
-    }
-
-    if (Math.abs(y) >= gameCanvas.height) {
-      var yy = 0;
-      var loop = true;
-      if (loop) {
-        if (y <= 0)
-          yy = gameCanvas.height; 
-        else
-          yy = -1 * gameCanvas.height;
-      }
-      else {
-        if (y <= 0)
-          yy = -1 * gameCanvas.height;
-        else
-          yy = gameCanvas.height;
-      }
-      y = yy;
-    }
-
-    this.player.x = x;
-    this.player.y = y;
-
-    var matrix = this.makeTranslation((PlayerSize / 2) * -1, (PlayerSize / 2) * -1);
-    var translationMatrix = this.makeTranslation(this.player.x, this.player.y);
-
-    matrix = this.matrixMultiply(matrix, translationMatrix);
-
-    gl.uniformMatrix3fv(matrixLocation, false, matrix);
-
-    this.setPlayerGeometry();
-
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-  };
-
-  /*
-   *
-   * Player =================================================
+   * Bullets =================================================
    *
    */
 
@@ -231,28 +161,68 @@ function Hypersuit(gl, gameCanvas) {
       var bullet = bullets[i];
 
       if (bullet == null || (typeof bullet == "undefined"))
-        bullet = new Bullet1((gameCanvas.width / 2), this.player.y);
+        bullet = this.initBullet();
       else
         bullet.y -= 1;
+      bullet.y -= bullet.speed;
 
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 2]);
 
-      var matrix = this.makeTranslation((PlayerSize / 2) * -1, (PlayerSize / 2) * -1);
+      var matrix = this.makeTranslation((bullet.bulletSize / 2) * -1, (bullet.bulletSize / 2) * -1);
       var translationMatrix = this.makeTranslation(bullet.x, bullet.y);
 
       matrix = this.matrixMultiply(matrix, translationMatrix);
 
       gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
-      this.setBullet1Geometry(bullet);
+      this.setBulletGeometry(bullet);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-      //showMessage('XXX BULLET = ' + bullet.x + ' - ' + bullet.y + ' - player = ' + this.player.y);
 
       bullets[i] = bullet;
     }
     bullets = bullets.slice(0, bulletsCounter);
+  };
+
+  /*
+   *
+   * Player =================================================
+   *
+   */
+
+  this.updatePlayer = function(movePlayer) {
+    showMessageInfo('[Hypersuit] - updatePlayer');
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 1]);
+
+    if (movePlayer) {
+      if (this.player.x >= gameCanvas.width)
+        this.player.x = 0;
+      else if (this.player.x <= 0)
+        this.player.x = gameCanvas.width;
+      else if (this.player.y >= gameCanvas.height)
+        this.player.y = 0;
+      else if (this.player.y <= 0)
+        this.player.y = gameCanvas.height;
+
+      this.player.translation[0] = this.player.x;
+      this.player.translation[1] = this.player.y;
+
+      //printPlayer(this.player);
+    }
+
+    var moveOriginMatrix = this.makeTranslation((this.player.playerSize / 2) * -1, (this.player.playerSize / 2) * -1);
+    var translationMatrix = this.makeTranslation(this.player.translation[0], this.player.translation[1]);
+
+    var matrix = this.matrixMultiply(moveOriginMatrix, translationMatrix);
+
+    gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+    this.setPlayerGeometry();
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    //printPlayer(this.player);
   };
 
   /*
@@ -283,7 +253,7 @@ function Hypersuit(gl, gameCanvas) {
       star.translation[1] = star.translation[1] + velocity + 1;
       if (star.translation[1] > gameCanvas.height) {
         star.x = parseInt(getRandom(gameCanvas.width));
-        star.y = -1;//parseInt(getRandom(gameCanvas.height));
+        star.y = -1;
         velocity = parseInt(getRandom(STARS_VELOCITY));
         starSize = parseInt(getRandom(STARS_SIZE));
         texture = parseInt(getRandomFromZero(5));
@@ -345,7 +315,7 @@ function Hypersuit(gl, gameCanvas) {
     var vertices = [];
     for (var i=0; i<STARS_NUM; i++) {
       x = parseInt(getRandom(gameCanvas.width));
-      y = -1;//parseInt(getRandom(gameCanvas.height));
+      y = -1;
       var velocity = parseInt(getRandom(STARS_VELOCITY));
       var starSize = (STARS_NUM > 1 ? parseInt(getRandom(STARS_SIZE)) : STARS_SIZE);
       var texture = parseInt(getRandomFromZero(5));
@@ -361,10 +331,22 @@ function Hypersuit(gl, gameCanvas) {
   };
 
   this.initPlayer = function() {
-    var x = (PlayerSize / 2) * -1;
-    var y = (PlayerSize / 2) * -1;
+    var x = parseInt(getRandom(gameCanvas.width));
+    var y = gameCanvas.height - PlayerSize;
+    var translation = [x, y];
     var pSize = PlayerSize;
-    this.player = new Player(x, y, pSize);
+    this.player = new Player(x, y, pSize, translation);
+  };
+
+  this.initBullet = function() {
+    var x = this.player.x;
+    var y = this.player.y;
+    var bSize = 10 + getRandom(PlayerSize);
+    var translation = [x, y];
+    var texture = parseInt(getRandomFromZero(6));
+    var speed = parseInt(getRandom(10));
+    var bullet = new Bullet(x, y, bSize, translation, texture, speed);
+    return bullet;
   };
 
   this.initBullets = function() {
@@ -429,8 +411,8 @@ function Hypersuit(gl, gameCanvas) {
   };
 
   this.setPlayerGeometry = function() {
-    var x = gameCanvas.width / 2;
-    var y = gameCanvas.height - PlayerSize + 10;
+    var x = 0;
+    var y = 0;
     var x1 = x;
     var x2 = x + PlayerSize;
     var y1 = y;
@@ -450,13 +432,13 @@ function Hypersuit(gl, gameCanvas) {
     );
   };
 
-  this.setBullet1Geometry = function(bullet) {
+  this.setBulletGeometry = function(bullet) {
     var x = 0;
     var y = 0;
     var x1 = x;
-    var x2 = x + (PlayerSize * 2);
+    var x2 = x + (bullet.bulletSize * 2);
     var y1 = y;
-    var y2 = y + (PlayerSize * 2);
+    var y2 = y + (bullet.bulletSize * 2);
 
     gl.bufferData(
       gl.ARRAY_BUFFER,

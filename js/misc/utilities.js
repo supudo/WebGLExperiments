@@ -191,6 +191,14 @@ function printStar(op, i, star) {
   showMessage('<pre><code>[Star # ' + i + ' - ' + op + ']' + output + '</code></pre>');
 }
 
+function printPlayer(player) {
+  var output = '\n';
+  output += 'x = ' + player.x + ', y = ' + player.y + '\n';
+  output += 'size = [' + player.playerSize + ']\n';
+  output += 'translation = [' + player.translation + ']\n';
+  showMessage('<pre><code>[ -- Player -- ]' + output + '</code></pre>');
+}
+
 function printStar2(op, i, star) {
   var output = '\n';
   output += 'p1 = [' + star.x1 + ', ' + star.y1 + ']\n';

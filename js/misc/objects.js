@@ -17,14 +17,20 @@ function Star(x, y, translation, rotation, velocity, starSize, texture, rotation
   this.rotationDirection = (typeof rotationDirection == "undefined") ? 0 : rotationDirection;
 }
 
-function Player(x, y) {
+function Player(x, y, playerSize, translation) {
   this.x = (typeof x == "undefined") ? 0 : x;
   this.y = (typeof y == "undefined") ? 0 : y;
+  this.playerSize = (typeof playerSize == "undefined") ? 0 : playerSize;
+  this.translation = (typeof translation == "undefined") ? [x, y] : translation;
 }
 
-function Bullet1(x, y) {
+function Bullet(x, y, bulletSize, translation, texture, speed) {
   this.x = (typeof x == "undefined") ? 0 : x;
   this.y = (typeof y == "undefined") ? 0 : y;
+  this.bulletSize = (typeof bulletSize == "undefined") ? 0 : bulletSize;
+  this.translation = (typeof translation == "undefined") ? [x, y] : translation;
+  this.texture = (typeof texture == "undefined") ? 0 : texture;
+  this.speed = (typeof speed == "undefined") ? 0 : speed;
 }
 
 function Star2(x1, y1, x2, y2, velocity, starSize, texture, rotationSpeed, rotationAngle, rotationDirection) {
