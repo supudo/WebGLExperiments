@@ -25,6 +25,7 @@ var timeAtLastFrame = new Date().getTime();
 var idealTimePerFrame = 1000 / 30;
 var leftover = 0.0;
 var frames = 0;
+var maxFPS = 100;
 
 var pMatrix = mat4.create();
 var starsBuffer;

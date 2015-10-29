@@ -82,9 +82,14 @@ function runGame(gameCanvas) {
     g_fpsCounter.init();
   }
   frames = 0;
+  /*
+  window.requestAnimationFrame(function() {
+    tick(gameCanvas);
+  });
+  */
   setInterval(function() {
     tick(gameCanvas);
-  }, 1000 / 30);
+  }, 1000 / maxFPS);
 }
 
 function tick(gameCanvas) {
