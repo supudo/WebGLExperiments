@@ -1,4 +1,5 @@
 var currentDemo = null;
+var g_fpsCounter = null;
 
 document.onkeydown = gameUI_KeyDown;
 document.onkeyup = gameUI_KeyUp;
@@ -53,12 +54,14 @@ function startGame(demoIndex) {
 }
 
 function release() {
-  $('#game_background').css("background-image", "url()");  
+  $('#game_background').css("background-image", "url()");
   gl.canvas.width = 1;
   gl.canvas.height = 1;
   if (currentDemo != null && typeof currentDemo != "undefined") {
     currentDemo.release();
     currentDemo = null;
+    g_fpsCounter.release();
+    g_fpsCounter = null;
   }
 }
 
@@ -74,6 +77,9 @@ function runGame(gameCanvas) {
     else
       eval('currentDemo = new ' + availableDemos[demoIndex][3] + '.' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');
     currentDemo.init();
+
+    g_fpsCounter = new FPSCounter(10);
+    g_fpsCounter.init();
   }
   frames = 0;
   setInterval(function() {
@@ -96,6 +102,9 @@ function tick(gameCanvas) {
 
   if (runCycle && demoIndex > 0)
     currentDemo.run(frames);
+
+  if (g_fpsCounter)
+    g_fpsCounter.update();
 
   leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
   timeAtLastFrame = timeAtThisFrame;
