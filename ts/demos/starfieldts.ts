@@ -136,6 +136,9 @@ module WebGLDemos {
       this.gl.deleteProgram(this.shaderProgram);
     }
 
+    public gameUI_handleKey(charCode): void {
+    }
+
     //
     // Private =================================================
     //

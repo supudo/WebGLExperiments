@@ -70,6 +70,10 @@ h3 {
   text-align: left;
 }
 
+.game_ui input {
+  color: #000000;
+}
+
 .game_ui_title {
   font-size: 16px;
   font-weight: bold;

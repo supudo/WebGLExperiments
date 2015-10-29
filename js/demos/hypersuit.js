@@ -14,11 +14,19 @@ function Hypersuit(gl, gameCanvas) {
       "../images/star2.png",
       "../images/star3.png",
       "../images/star4.png",
+      "../images/bullet1_1.png",
+      "../images/bullet1_2.png",
+      "../images/bullet1_3.png",
+      "../images/bullet1_4.png",
+      "../images/bullet1_5.png",
+      "../images/bullet1_6.png",
       "../images/player1.png"
     ];
 
   var allTextures = [];
   var glTextures = [];
+
+  var player, bullets, bulletsCounter = 0;
 
   var bufferTextures, bufferDrawingStars, bufferDrawingPlayer;
 
@@ -40,6 +48,8 @@ function Hypersuit(gl, gameCanvas) {
     starsVertices = new Array();
 
     this.initStars();
+    this.initPlayer();
+    this.initBullets();
     this.initTextures();
     this.initShaders();
 
@@ -69,6 +79,23 @@ function Hypersuit(gl, gameCanvas) {
     gl.deleteBuffer(bufferDrawingStars);
     gl.deleteBuffer(bufferDrawingPlayer);
     gl.deleteProgram(shaderProgram);
+  };
+
+  this.gameUI_handleKey = function(charCode) {
+    if (texturesLoaded) {
+      if (charCode == 32) // spacebar
+        bulletsCounter++;
+      else if (charCode == 37) // left
+        this.player.x = this.player.x - PlayerMovement;
+      else if (charCode == 38) // up
+        this.player.y = this.player.y - PlayerMovement;
+      else if (charCode == 39) // right
+        this.player.x = this.player.x + PlayerMovement;
+      else if (charCode == 40) // down
+        this.player.y = this.player.y + PlayerMovement;
+      this.updatePlayer();
+      this.updateBullets();
+    }
   };
 
   //
@@ -123,6 +150,7 @@ function Hypersuit(gl, gameCanvas) {
 
     this.updateStars();
     this.updatePlayer();
+    this.updateBullets();
   };
 
   /*
@@ -136,12 +164,95 @@ function Hypersuit(gl, gameCanvas) {
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 1]);
 
+    var x = this.player.x;
+    var y = this.player.y;
+
+    if (Math.abs(x) >= (gameCanvas.width / 2)) {
+      var xx = 0;
+      var loop = true;
+      if (loop) {
+        if (x <= 0)
+          xx = (gameCanvas.width / 2); 
+        else
+          xx = -1 * (gameCanvas.width / 2);
+      }
+      else {
+        if (x <= 0)
+          xx = -1 * (gameCanvas.width / 2);
+        else
+          xx = (gameCanvas.width / 2);
+      }
+      x = xx;
+    }
+
+    if (Math.abs(y) >= gameCanvas.height) {
+      var yy = 0;
+      var loop = true;
+      if (loop) {
+        if (y <= 0)
+          yy = gameCanvas.height; 
+        else
+          yy = -1 * gameCanvas.height;
+      }
+      else {
+        if (y <= 0)
+          yy = -1 * gameCanvas.height;
+        else
+          yy = gameCanvas.height;
+      }
+      y = yy;
+    }
+
+    this.player.x = x;
+    this.player.y = y;
+
     var matrix = this.makeTranslation((PlayerSize / 2) * -1, (PlayerSize / 2) * -1);
+    var translationMatrix = this.makeTranslation(this.player.x, this.player.y);
+
+    matrix = this.matrixMultiply(matrix, translationMatrix);
+
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
     this.setPlayerGeometry();
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+  };
+
+  /*
+   *
+   * Player =================================================
+   *
+   */
+
+  this.updateBullets = function() {
+    showMessageInfo('[Hypersuit] - fireBullet');
+
+    for (var i=0; i<bulletsCounter; i++) {
+      var bullet = bullets[i];
+
+      if (bullet == null || (typeof bullet == "undefined"))
+        bullet = new Bullet1((gameCanvas.width / 2), this.player.y);
+      else
+        bullet.y -= 1;
+
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 2]);
+
+      var matrix = this.makeTranslation((PlayerSize / 2) * -1, (PlayerSize / 2) * -1);
+      var translationMatrix = this.makeTranslation(bullet.x, bullet.y);
+
+      matrix = this.matrixMultiply(matrix, translationMatrix);
+
+      gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+      this.setBullet1Geometry(bullet);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      //showMessage('XXX BULLET = ' + bullet.x + ' - ' + bullet.y + ' - player = ' + this.player.y);
+
+      bullets[i] = bullet;
+    }
+    bullets = bullets.slice(0, bulletsCounter);
   };
 
   /*
@@ -249,6 +360,29 @@ function Hypersuit(gl, gameCanvas) {
     }
   };
 
+  this.initPlayer = function() {
+    var x = (PlayerSize / 2) * -1;
+    var y = (PlayerSize / 2) * -1;
+    var pSize = PlayerSize;
+    this.player = new Player(x, y, pSize);
+  };
+
+  this.initBullets = function() {
+    bullets = Array();
+  };
+
+  this.buildStarTextureBuffer = function() {
+    showMessageInfo('[Hypersuit] - buildStarTextureBuffer');
+    var vertices = [];
+    // Stars
+    for (var i=0; i<STARS_NUM; i++) {
+      vertices = vertices.concat(this.getSingleTextureMatrix());
+    }
+    // Player
+    vertices = vertices.concat(this.getSingleTextureMatrix());
+    return vertices;
+  };
+
   this.buildStarTextureBuffer = function() {
     showMessageInfo('[Hypersuit] - buildStarTextureBuffer');
     var vertices = [];
@@ -296,11 +430,33 @@ function Hypersuit(gl, gameCanvas) {
 
   this.setPlayerGeometry = function() {
     var x = gameCanvas.width / 2;
-    var y = gameCanvas.height - PlayerSize - 10;
+    var y = gameCanvas.height - PlayerSize + 10;
     var x1 = x;
     var x2 = x + PlayerSize;
     var y1 = y;
     var y2 = y + PlayerSize;
+
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        x1, y1,
+        x2, y1,
+        x1, y2,
+        x1, y2,
+        x2, y1,
+        x2, y2
+      ]),
+      gl.STATIC_DRAW
+    );
+  };
+
+  this.setBullet1Geometry = function(bullet) {
+    var x = 0;
+    var y = 0;
+    var x1 = x;
+    var x2 = x + (PlayerSize * 2);
+    var y1 = y;
+    var y2 = y + (PlayerSize * 2);
 
     gl.bufferData(
       gl.ARRAY_BUFFER,

@@ -70,6 +70,9 @@ function Starfield(gl, gameCanvas) {
     gl.deleteProgram(shaderProgram);
   };
 
+  this.gameUI_handleKey = function(charCode) {
+  };
+
   //
   // Private =================================================
   //

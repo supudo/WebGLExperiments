@@ -42,6 +42,9 @@ function TexAnim(gl, gameCanvas) {
     //gl.deleteTexture(someTexture);
   };
 
+  this.gameUI_handleKey = function(charCode) {
+  };
+
   //
   // Private =================================================
   //

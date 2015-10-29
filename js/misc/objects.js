@@ -17,6 +17,16 @@ function Star(x, y, translation, rotation, velocity, starSize, texture, rotation
   this.rotationDirection = (typeof rotationDirection == "undefined") ? 0 : rotationDirection;
 }
 
+function Player(x, y) {
+  this.x = (typeof x == "undefined") ? 0 : x;
+  this.y = (typeof y == "undefined") ? 0 : y;
+}
+
+function Bullet1(x, y) {
+  this.x = (typeof x == "undefined") ? 0 : x;
+  this.y = (typeof y == "undefined") ? 0 : y;
+}
+
 function Star2(x1, y1, x2, y2, velocity, starSize, texture, rotationSpeed, rotationAngle, rotationDirection) {
   this.x1 = (typeof x1 == "undefined") ? 0 : x1;
   this.y1 = (typeof y1 == "undefined") ? 0 : y1;

@@ -1,5 +1,19 @@
 var currentDemo = null;
 
+document.onkeydown = gameUI_KeyDown;
+document.onkeyup = gameUI_KeyUp;
+
+function gameUI_KeyDown(event) {
+  gameUI_PressedKeys[event.keyCode] = true;
+  var charCode = (event.which) ? event.which : event.keyCode;
+  if (currentDemo != null && typeof currentDemo != "undefined")
+    currentDemo.gameUI_handleKey(charCode);
+}
+
+function gameUI_KeyUp(event) {
+  gameUI_PressedKeys[event.keyCode] = false;
+}
+
 function setDemo(index) {
   demoIndex = index;
   showMessage("<u>..... DEMO CHANGED TO " + availableDemos[demoIndex][0] + " .....</u>");
@@ -42,8 +56,10 @@ function release() {
   $('#game_background').css("background-image", "url()");  
   gl.canvas.width = 1;
   gl.canvas.height = 1;
-  if (currentDemo != null && typeof currentDemo == "undefined")
+  if (currentDemo != null && typeof currentDemo != "undefined") {
     currentDemo.release();
+    currentDemo = null;
+  }
 }
 
 function runGame(gameCanvas) {
@@ -51,7 +67,7 @@ function runGame(gameCanvas) {
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
   if (demoIndex > 0) {
-    if (currentDemo != null && typeof currentDemo == "undefined")
+    if (currentDemo != null && typeof currentDemo != "undefined")
       currentDemo.release();
     if (availableDemos[demoIndex][2] == 0)
       eval('currentDemo = new ' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');

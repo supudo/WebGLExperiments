@@ -40,6 +40,9 @@ function Rotate2D(gl, gameCanvas) {
     //gl.deleteTexture(someTexture);
   };
 
+  this.gameUI_handleKey = function(charCode) {
+  };
+
   //
   // Private =================================================
   //
