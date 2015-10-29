@@ -7,26 +7,37 @@ function Hypersuit(gl, gameCanvas) {
   var texturesLoaded = false;
   var yTranslation = -1;
 
-  var allTexturesImages = 
+  var texturesImagesStars = 
     [
       "../images/star0.png",
       "../images/star1.png",
       "../images/star2.png",
       "../images/star3.png",
-      "../images/star4.png",
+      "../images/star4.png"
+    ];
+
+  var texturesImagesBullets = 
+    [
       "../images/bullet1_1.png",
+      "../images/bullet1_2.png",
+      "../images/bullet1_3.png",
+      "../images/bullet1_4.png",
+      "../images/bullet1_5.png",
+      "../images/bullet1_6.png"
+    ];
+
+  var texturesImagesPlayer = 
+    [
       "../images/player1.png"
     ];
 
-  var allTextures = [];
-  var glTextures = [];
+  var texturesStars = [], texturesBullets = [], texturesPlayer = [];
+  var glTexturesStars = [], glTexturesBullets = [], glTexturesPlayer = [];
 
   var player, bullets, bulletsCounter = 0;
 
   var bufferTextures, bufferDrawingStars, bufferDrawingPlayer;
-
   var positionLocation, resolutionLocation, texCoordLocation, matrixLocation;
-
   var shaderProgram;
   var shaderVertex, shaderFragment;
 
@@ -48,7 +59,7 @@ function Hypersuit(gl, gameCanvas) {
     this.initTextures();
     this.initShaders();
 
-    loadImages(allTexturesImages, this.starTexturesLoaded);
+    this.loadTexturesImages();
   };
 
   this.changeSettings = function() {
@@ -65,8 +76,14 @@ function Hypersuit(gl, gameCanvas) {
   };
 
   this.release = function() {
-    for (var i=0; i<glTextures.length; i++) {
-      gl.deleteTexture(glTextures[i]);
+    for (var i=0; i<glTexturesStars.length; i++) {
+      gl.deleteTexture(glTexturesStars[i]);
+    }
+    for (var i=0; i<glTexturesBullets.length; i++) {
+      gl.deleteTexture(glTexturesBullets[i]);
+    }
+    for (var i=0; i<glTexturesPlayer.length; i++) {
+      gl.deleteTexture(glTexturesPlayer[i]);
     }
     gl.deleteShader(shaderFragment);
     gl.deleteShader(shaderVertex);
@@ -94,12 +111,11 @@ function Hypersuit(gl, gameCanvas) {
   };
 
   //
-  // Private =================================================
+  // WebGL =================================================
   //
 
-  this.starTexturesLoaded = function(images) {
-    showMessageInfo('[Hypersuit] - StarTexturesLoaded - init - image loaded');
-    allTextures = images;
+  this.allTexturesLoaded = function(images) {
+    showMessageInfo('[Hypersuit] - allTexturesLoaded - init - image loaded');
     texturesLoaded = true;
   };
 
@@ -132,7 +148,7 @@ function Hypersuit(gl, gameCanvas) {
     showMessageInfo('[Hypersuit] - DrawScene');
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
 
-    var textureVertices = this.buildStarTextureBuffer();
+    var textureVertices = this.buildTextureBuffer();
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureVertices), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
@@ -166,7 +182,7 @@ function Hypersuit(gl, gameCanvas) {
         bullet.y -= 1;
       bullet.y -= bullet.speed;
 
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 2]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texturesBullets[0]);
 
       var matrix = this.makeTranslation((bullet.bulletSize / 2) * -1, (bullet.bulletSize / 2) * -1);
       var translationMatrix = this.makeTranslation(bullet.x, bullet.y);
@@ -193,7 +209,7 @@ function Hypersuit(gl, gameCanvas) {
   this.updatePlayer = function(movePlayer) {
     showMessageInfo('[Hypersuit] - updatePlayer');
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[allTextures.length - 1]);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texturesPlayer[0]);
 
     if (movePlayer) {
       if (this.player.x >= gameCanvas.width)
@@ -269,7 +285,7 @@ function Hypersuit(gl, gameCanvas) {
       star = new Star(star.x, star.y, star.translation, star.rotation, velocity, starSize, texture, rotationSpeed, rotationAngle, rotationDirection);
       stars[i] = star;
 
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, allTextures[texture]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texturesStars[texture]);
 
       var angleInRadians = this.getAngleInRadians(star.rotationAngle);
       var moveOriginMatrix = this.makeTranslation((star.starSize / 2) * -1, (star.starSize / 2) * -1);
@@ -296,12 +312,45 @@ function Hypersuit(gl, gameCanvas) {
    *
    */
 
+  this.loadTexturesImages = function() {
+    showMessageInfo('[Hypersuit] - loadTexturesImages');
+    loadImages(texturesImagesStars, this.loadTexturesBullets.bind(this));
+  };
+   
+  this.loadTexturesBullets = function(images) {
+    showMessageInfo('[Hypersuit] - loadTexturesBullets');
+    texturesStars = images;
+    loadImages(texturesImagesBullets, this.loadTexturesPlayer.bind(this));
+  };
+   
+  this.loadTexturesPlayer = function(images) {
+    showMessageInfo('[Hypersuit] - loadTexturesPlayer');
+    texturesBullets = images;
+    loadImages(texturesImagesPlayer, this.loadTexturesFinished.bind(this));
+  };
+   
+  this.loadTexturesFinished = function(images) {
+    showMessageInfo('[Hypersuit] - loadTexturesFinished');
+    texturesPlayer = images;
+    this.allTexturesLoaded();
+  };
+
   this.initTextures = function() {
     showMessageInfo('[Hypersuit] - initTextures');
-    for (var i=0; i<allTexturesImages.length; i++) {
+    for (var i=0; i<texturesImagesStars.length; i++) {
       var texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      glTextures[i] = texture;
+      glTexturesStars[i] = texture;
+    }
+    for (var i=0; i<texturesImagesBullets.length; i++) {
+      var texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      glTexturesBullets[i] = texture;
+    }
+    for (var i=0; i<texturesImagesPlayer.length; i++) {
+      var texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      glTexturesPlayer[i] = texture;
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -353,32 +402,25 @@ function Hypersuit(gl, gameCanvas) {
     bullets = Array();
   };
 
-  this.buildStarTextureBuffer = function() {
-    showMessageInfo('[Hypersuit] - buildStarTextureBuffer');
+  this.buildTextureBuffer = function() {
+    showMessageInfo('[Hypersuit] - buildTextureBuffer');
     var vertices = [];
     // Stars
-    for (var i=0; i<STARS_NUM; i++) {
+    for (var i=0; i<texturesImagesStars.length; i++) {
+      vertices = vertices.concat(this.getSingleTextureMatrix());
+    }
+    // Bullets
+    for (var i=0; i<texturesImagesBullets.length; i++) {
       vertices = vertices.concat(this.getSingleTextureMatrix());
     }
     // Player
-    vertices = vertices.concat(this.getSingleTextureMatrix());
-    return vertices;
-  };
-
-  this.buildStarTextureBuffer = function() {
-    showMessageInfo('[Hypersuit] - buildStarTextureBuffer');
-    var vertices = [];
-    // Stars
-    for (var i=0; i<STARS_NUM; i++) {
+    for (var i=0; i<texturesImagesPlayer.length; i++) {
       vertices = vertices.concat(this.getSingleTextureMatrix());
     }
-    // Player
-    vertices = vertices.concat(this.getSingleTextureMatrix());
     return vertices;
   };
 
   this.getSingleTextureMatrix = function() {
-    showMessageInfo('[Hypersuit] - getSingleTextureMatrix');
     return [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0];
   }
 
