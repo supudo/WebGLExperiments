@@ -5,7 +5,8 @@ function Hypersuit(gl, gameCanvas) {
   //
 
   var texturesLoaded = false;
-  var yTranslation = -1;
+  var frameCount = -1;
+  var animationFrames = 3;
 
   var texturesImagesStars = 
     [
@@ -36,8 +37,8 @@ function Hypersuit(gl, gameCanvas) {
 
   var player, bullets, bulletsCounter = 0;
 
-  var bufferTextures, bufferDrawingStars, bufferDrawingPlayer;
-  var positionLocation, resolutionLocation, texCoordLocation, matrixLocation;
+  var bufferTextures, bufferDrawingStars, bufferDrawingPlayer, matrixLocation;
+  var positionLocation, resolutionLocation, texCoordLocation;
   var shaderProgram;
   var shaderVertex, shaderFragment;
 
@@ -49,7 +50,7 @@ function Hypersuit(gl, gameCanvas) {
     showMessageInfo('[Hypersuit] - init');
     $('#game_background').css("background-image", "url(../images/background0.png)");  
 
-    yTranslation = -1;
+    frameCount = -1;
     stars = new Array();
     starsVertices = new Array();
 
@@ -70,7 +71,7 @@ function Hypersuit(gl, gameCanvas) {
   this.run = function(frames) {
     if (texturesLoaded) {
       showMessageInfo('[Hypersuit] - run');
-      yTranslation = frames;
+      frameCount = frames;
       this.drawScene();
     }
   };
@@ -182,7 +183,13 @@ function Hypersuit(gl, gameCanvas) {
         bullet.y -= 1;
       bullet.y -= bullet.speed;
 
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texturesBullets[0]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texturesBullets[bullet.texture]);
+
+      if (frameCount % animationFrames == 0) {
+        bullet.texture += 1;
+        if (bullet.texture > (texturesBullets.length - 1))
+          bullet.texture = 0;
+      }
 
       var matrix = this.makeTranslation((bullet.bulletSize / 2) * -1, (bullet.bulletSize / 2) * -1);
       var translationMatrix = this.makeTranslation(bullet.x, bullet.y);
@@ -392,7 +399,7 @@ function Hypersuit(gl, gameCanvas) {
     var y = this.player.y;
     var bSize = 10 + getRandom(PlayerSize);
     var translation = [x, y];
-    var texture = parseInt(getRandomFromZero(6));
+    var texture = 0;
     var speed = parseInt(getRandom(10));
     var bullet = new Bullet(x, y, bSize, translation, texture, speed);
     return bullet;
