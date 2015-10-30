@@ -10,6 +10,7 @@ var availableDemos = [
 ];
 
 var demoIndex = 0;
+var animatationFrameID;
 
 var logCalls = true;
 var glDebug = false;

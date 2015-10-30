@@ -1,6 +1,9 @@
 var currentDemo = null;
 var g_fpsCounter = null;
 
+// WebGL Inspector fix
+setDemo(7);
+
 document.onkeydown = gameUI_KeyDown;
 document.onkeyup = gameUI_KeyUp;
 
@@ -54,6 +57,7 @@ function startGame(demoIndex) {
 }
 
 function release() {
+  gameAnimateStop();
   $('#game_background').css("background-image", "url()");
   gl.canvas.width = 1;
   gl.canvas.height = 1;
@@ -82,14 +86,21 @@ function runGame(gameCanvas) {
     g_fpsCounter.init();
   }
   frames = 0;
-  /*
-  window.requestAnimationFrame(function() {
+  gameAnimateStart(gameCanvas);
+  
+  //setInterval(function() {
+  //  tick(gameCanvas);
+  //}, 1000 / maxFPS);
+}
+
+function gameAnimateStart(gameCanvas) {
+  animatationFrameID = window.requestAnimationFrame(function() {
     tick(gameCanvas);
   });
-  */
-  setInterval(function() {
-    tick(gameCanvas);
-  }, 1000 / maxFPS);
+}
+
+function gameAnimateStop() {
+  cancelAnimationFrame(animatationFrameID);
 }
 
 function tick(gameCanvas) {
@@ -113,4 +124,6 @@ function tick(gameCanvas) {
 
   leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
   timeAtLastFrame = timeAtThisFrame;
+
+  gameAnimateStart(gameCanvas);
 }

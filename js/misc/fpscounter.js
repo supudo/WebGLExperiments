@@ -40,5 +40,6 @@ function FPSCounter(opt_numSamples) {
   this.release = function() {
     $('#fps').text("");
     $('#fps').css("width", "0%");
+    $('#fps').html('<span style="color: #000000; font-weight: bold">FPS</span>');
   }
 }
