@@ -48,6 +48,9 @@ function startGame(demoIndex) {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
 
+    var testsRoutines = new Tests();
+    testsRoutines.runTests(gl, gameCanvas);
+
     mat4.ortho(0, gameCanvas.width, 0, gameCanvas.height, -1, 1, pMatrix);
     if (demoIndex > 0) 
       runGame(gameCanvas);

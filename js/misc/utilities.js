@@ -67,9 +67,9 @@ function showMessageInfo(msg) {
 function listObjectProperties(obj) {
   var keys = '';
   for (var key in obj) {
-    keys += key + " <-> " + obj[key] + '<br />';
+    keys += key + " <-> " + obj[key] + '<br />\n';
   }
-  showMessage(keys);
+  showMessage('<pre><code>' + keys + '</code></pre>');
 }
 
 function getRandom(max) {
@@ -140,7 +140,7 @@ var getSourceSynch = function(url) {
   var req = new XMLHttpRequest();
   req.open("GET", url, false);
   req.send(null);
-  showMessage('Shader source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
+  showMessage('External source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
   return (req.status == 200) ? req.responseText : null;
 };
 

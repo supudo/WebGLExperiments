@@ -6,6 +6,7 @@ var availableDemos = [
   [ 'TexAnim', 'TexAnim', 0, '' ],
   [ '2D Rotation', 'Rotate2D', 0, '' ],
   [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos' ],
+  [ 'OBJ Loader', 'OBJLoader', 0, '' ],
   [ '! Hypersuit', 'Hypersuit', 0, '' ]
 ];
 
