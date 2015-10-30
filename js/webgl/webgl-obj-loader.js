@@ -1,3 +1,5 @@
+// https://en.wikipedia.org/wiki/Wavefront_.obj_file#File_format
+
 function WebGLObjLoader(gl) {
 
   //
