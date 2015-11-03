@@ -16,7 +16,7 @@ function WebGLObjLoader(gl) {
   // Private variables =================================================
   //
 
-  var objString;
+  var objString, objFilePath, objFilename;
 
   var geometricVertices = [];
   var textureCoordinates = [];
@@ -32,21 +32,61 @@ function WebGLObjLoader(gl) {
   var regex_spaceVertices = /^vp\s/;
   var regex_polygonalFaces = /^f\s/;
   var regex_polygonalFacesSingle = "/";
+  var regex_materialFile = /^mtllib\s/;
   var regex_whiteSpace = /\s+/;
+
+  var regex_materialNew = /^newmtl\s/;
+  var regex_materialAmbient = /^Ka\s/;
+  var regex_materialDiffuse = /^Kd\s/;
+  var regex_materialSpecular = /^Ks\s/;
+  var regex_materialSpecularExp = /^Ns\s/;
+  var regex_materialTransperant1 = /^Tr\s/;
+  var regex_materialTransperant2 = /^d\s/;
+  var regex_materialOpticalDensity = /^Ni\s/;
+  var regex_materialIllumination = /^illum\s/;
+  var regex_materialTextureAmbient = /^map_Ka\s/;
+  var regex_materialTextureDensity = /^map_Kd\s/;
+  var regex_materialTextureSpecular = /^map_Ks\s/;
+  var regex_materialTextureSpecularExp = /^map_Ns\s/;
+  var regex_materialTextureDissolve = /^map_d\s/;
+
+  var illuminationModes = [
+    'Color on and Ambient off',
+    'Color on and Ambient on',
+    'Highlight on',
+    'Reflection on and Ray trace on',
+    'Transparency: Glass on, Reflection: Ray trace on',
+    'Reflection: Fresnel on and Ray trace on',
+    'Transparency: Refraction on, Reflection: Fresnel off and Ray trace on',
+    'Transparency: Refraction on, Reflection: Fresnel on and Ray trace on',
+    'Reflection on and Ray trace off',
+    'Transparency: Glass on, Reflection: Ray trace off',
+    'Casts shadows onto invisible surfaces'
+  ];
 
   //
   // Public =================================================
   //
 
-  WebGLObjLoader.prototype.parseObject = function(objFileURL) {
+  WebGLObjLoader.prototype.parseObject = function(filePath, fileName) {
     this.objMesh = {};
+    objFilePath = filePath;
+    objFilename = fileName;
     unpacked.verts = [];
     unpacked.norms = [];
     unpacked.textures = [];
     unpacked.hashIndices = {};
     unpacked.indices = [];
     unpacked.index = 0;
-    this.loadFile(objFileURL);
+    objString = this.loadFile(objFilePath, objFilename);
+    this.processOBJ();
+  };
+
+  WebGLObjLoader.prototype.initMeshBuffers = function() {
+    this.objMesh.bufferNormal = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.vertexNormals, 3);
+    this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
+    this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
+    this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
   };
 
   //
@@ -62,6 +102,8 @@ function WebGLObjLoader(gl) {
 
       if (regex_objTitle.test(singleLine))
         this.objTitle = lineElements.join(' ');
+      else if (regex_materialFile.test(singleLine))
+        this.loadMaterial(lineElements[0]);
       else if (regex_geometricVertices.test(singleLine))
         geometricVertices.push.apply(geometricVertices, lineElements);
       else if (regex_textureCoordinates.test(singleLine))
@@ -132,16 +174,98 @@ function WebGLObjLoader(gl) {
     this.objMesh.indices = unpacked.indices;
   };
 
+  this.loadMaterial = function(mtlFile) {
+    var materialFileContents = this.loadFile(objFilePath, mtlFile);
+    var matLines = materialFileContents.split('\n');
+    var objMaterials = [];
+    var singleMaterial;
+    for (var i=0; i<matLines.length; i++) {
+      var singleLine = matLines[i];
+      var lineElements = singleLine.split(regex_whiteSpace);
+      lineElements.shift();
+
+      if (singleLine == '')
+        continue;
+
+      if (regex_materialNew.test(singleLine)) {
+        singleMaterial = {};
+        singleMaterial.title = lineElements.join(' ');
+        singleMaterial.ambient = [];
+        singleMaterial.diffuse = [];
+        singleMaterial.specular = [];
+        singleMaterial.specularExp = [];
+        singleMaterial.transparent = [];
+        singleMaterial.opticalDensity = -1.0;
+        singleMaterial.illumination = -1.0;
+        singleMaterial.textures = {};
+        singleMaterial.textures.ambient = [];
+        singleMaterial.textures.density = [];
+        singleMaterial.textures.specular = [];
+        singleMaterial.textures.specularExp = [];
+        singleMaterial.textures.dissolve = [];
+
+        objMaterials.push(singleMaterial);
+      }
+
+      if (regex_materialAmbient.test(singleLine))
+        singleMaterial.ambient.push.apply(singleMaterial.ambient, lineElements);
+      else if (regex_materialDiffuse.test(singleLine))
+        singleMaterial.diffuse.push.apply(singleMaterial.diffuse, lineElements);
+      else if (regex_materialSpecular.test(singleLine))
+        singleMaterial.specular.push.apply(singleMaterial.specular, lineElements);
+      else if (regex_materialSpecularExp.test(singleLine))
+        singleMaterial.specularExp.push.apply(singleMaterial.specularExp, lineElements);
+      else if (regex_materialTransperant1.test(singleLine) || regex_materialTransperant2.test(singleLine))
+        singleMaterial.transparent.push.apply(singleMaterial.transparent, lineElements);
+      else if (regex_materialOpticalDensity.test(singleLine))
+        singleMaterial.opticalDensity = lineElements[0];
+      else if (regex_materialIllumination.test(singleLine))
+        singleMaterial.illumination = lineElements[0];
+      else if (regex_materialTextureAmbient.test(singleLine))
+        singleMaterial.textures.ambient.push(this.parseTexture(lineElements.join(' ')));
+      else if (regex_materialTextureDensity.test(singleLine))
+        singleMaterial.textures.density.push(this.parseTexture(lineElements.join(' ')));
+      else if (regex_materialTextureSpecular.test(singleLine))
+        singleMaterial.textures.specular.push(this.parseTexture(lineElements.join(' ')));
+      else if (regex_materialTextureSpecularExp.test(singleLine))
+        singleMaterial.textures.specularExp.push(this.parseTexture(lineElements.join(' ')));
+      else if (regex_materialTextureDissolve.test(singleLine))
+        singleMaterial.textures.dissolve.push(this.parseTexture(lineElements.join(' ')));
+    }
+    printData(objMaterials);
+  };
+
+  this.parseTexture = function(textureLine) {
+    var texture = {};
+    var lineElements;
+    if (textureLine.indexOf('-') > -1) {
+      lineElements = textureLine.split('-');
+
+      var img = lineElements[lineElements.length - 1].split(' ');
+      texture.image = img[img.length - 1];
+      img.pop();
+
+      lineElements[lineElements.length - 1] = img.join(' ');
+
+      texture.commands = [];
+      lineElements.shift();
+      for (var i=0; i<lineElements.length; i++) {
+        var comArr = lineElements[i].split(' ');
+        var singleCommand = {};
+        singleCommand.command = comArr[0];
+        comArr.shift();
+        singleCommand.arguments = comArr.join(' ');
+        texture.commands.push(singleCommand);
+      }
+    }
+    else
+      texture.image = textureLine;
+    return texture;
+  };
+
   //
   // Utilities =================================================
   //
-
-  this.initMeshBuffers = function() {
-    this.objMesh.bufferNormal = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.vertexNormals, 3);
-    this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
-    this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
-    this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
-  };
 
   this.buildBuffer = function(type, data, itemSize) {
     var buffer = gl.createBuffer();
@@ -153,17 +277,16 @@ function WebGLObjLoader(gl) {
     return buffer;
   };
 
-  this.loadFile = function(objFileURL) {
+  this.loadFile = function(objFilePath, fileName) {
+    var fileURL = objFilePath + ((objFilePath.indexOf('/', objFilePath.length - 1) !== -1) ? '' : '/') + fileName;
     var req = new XMLHttpRequest();
-    req.open("GET", objFileURL, false);
+    req.open("GET", fileURL, false);
     req.send(null);
     showMessageInfo('External source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
-    if (req.status == 200) {
-      objString = req.responseText;
-      this.processOBJ();
-    }
+    if (req.status == 200)
+      return req.responseText;
     else
-      throw "Cannot load obj file! (" + objFileURL + ")";
+      throw "Cannot load obj file! (" + fileURL + ")";
   };
 
 }

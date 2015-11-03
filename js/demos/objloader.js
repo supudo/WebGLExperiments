@@ -29,7 +29,7 @@ function OBJLoader(gl, gameCanvas) {
     meshes = {};
     models = {};
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects/EnemySpaceship.obj');
+    objLoader.parseObject('../../objects', 'EnemySpaceship.obj');
     objLoader.initMeshBuffers();
     meshes['spaceship'] = objLoader.objMesh;
 
@@ -43,7 +43,7 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.run = function(frames) {
-    this.drawScene();
+    //this.drawScene();
   };
 
   this.release = function() {

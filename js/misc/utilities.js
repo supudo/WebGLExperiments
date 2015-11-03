@@ -46,9 +46,12 @@ function showMessage(msg) {
     else {
       var d = new Date();
       str = '';
+      if (!logReversed)
+        str += msgs.html();
       str += '<u>' + d.getHours() + ':' + d.getMinutes() + '.' + d.getSeconds() + '.' + d.getMilliseconds() + '</u> - ' + msg;
       str += "<br/>------------------------------------<br />";
-      str += msgs.html();
+      if (logReversed)
+        str += msgs.html();
       if (limitLog && str.length > logLength)
         str = str.substring(0, logLength);
       msgs.html(str);
@@ -70,6 +73,10 @@ function listObjectProperties(obj) {
     keys += key + " <-> " + obj[key] + '<br />\n';
   }
   showMessage('<pre><code>' + keys + '</code></pre>');
+}
+
+function printData(obj) {
+  showMessage('<pre><code>' + JSON.stringify(obj, null, 2) + '</code></pre>');
 }
 
 function getRandom(max) {

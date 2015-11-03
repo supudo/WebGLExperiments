@@ -1,13 +1,14 @@
 var availableDemos = [
-  [ 'Select Demo', '', 0, '', false ],
-  [ 'Stars', 'Stars', 0, '', false ],
-  [ 'Falling Star', 'FallingStar', 0, '', false ],
-  [ 'Starfield', 'Starfield', 0, '', false ],
-  [ 'TexAnim', 'TexAnim', 0, '', false ],
-  [ '2D Rotation', 'Rotate2D', 0, '', false ],
-  [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos', false ],
-  [ 'OBJ Loader', 'OBJLoader', 0, '', true ],
-  [ '! Hypersuit', 'Hypersuit', 0, '', false ]
+  // 'Demo Name', 'Function Prefix', 'TS', '', '', 'Hide Options'
+  [ 'Select Demo', '', 0, '', false, false ],
+  [ 'Stars', 'Stars', 0, '', false, false ],
+  [ 'Falling Star', 'FallingStar', 0, '', false, false ],
+  [ 'Starfield', 'Starfield', 0, '', false, false ],
+  [ 'TexAnim', 'TexAnim', 0, '', false, false ],
+  [ '2D Rotation', 'Rotate2D', 0, '', false, false ],
+  [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos', false, false ],
+  [ 'OBJ Loader', 'OBJLoader', 0, '', true, true ],
+  [ '! Hypersuit', 'Hypersuit', 0, '', false, false ]
 ];
 
 var demoIndex = 0;
@@ -16,6 +17,7 @@ var animatationFrameID;
 var logCalls = true;
 var logInfo = false;
 var glDebug = false;
+var logReversed = false;
 var slowMo = false;
 var slowMoFrames = 20;
 var limitLog = true;

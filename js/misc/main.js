@@ -85,6 +85,9 @@ function runGame(gameCanvas) {
       eval('currentDemo = new ' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');
     else
       eval('currentDemo = new ' + availableDemos[demoIndex][3] + '.' + availableDemos[demoIndex][1] + '(gl, gameCanvas);');
+    showOptions();
+    if (availableDemos[demoIndex][5])
+      hideOptions();
     currentDemo.init();
 
     g_fpsCounter = new FPSCounter(10);
@@ -131,4 +134,31 @@ function tick(gameCanvas) {
   timeAtLastFrame = timeAtThisFrame;
 
   gameAnimateStart(gameCanvas);
+}
+
+function hideOptions() {
+  var options_html = $('#panel_options').html();
+  $('#panel_options').remove();
+  $('#panel_game').attr('class', 'col-md-4');
+  $('#panel_log').attr('class', 'col-md-8');
+  $('#main_view').append(
+    $('<div/>')
+      .attr('id', 'panel_options')
+      .css('visibility', 'hidden')
+      .html(options_html)
+  );
+  $('#panel_options').hide();
+}
+
+function showOptions() {
+  var options_html = $('#panel_options').html();
+  $('#panel_options').remove();
+  $('#panel_game').attr('class', 'col-md-4');
+  $('#panel_log').attr('class', 'col-md-4');
+  $('#game_row').append(
+    $('<div/>')
+      .attr('class', 'col-md-4')
+      .attr('id', 'panel_options')
+      .html(options_html)
+  );
 }

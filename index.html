@@ -30,7 +30,7 @@
 
     <br />
 
-    <div class="container text-center">
+    <div id="main_view" class="container text-center">
       <h3>Hypersuit</h3>
 
       <div class="row">
@@ -63,14 +63,24 @@
 
       <br />
 
-      <div class="row">
-        <div class="col-md-4">
+      <div id="game_row" class="row">
+        <div class="col-md-4" id="panel_game">
           <div class="game_panel" id="game_background">
             <canvas id="game_canvas"></canvas>
           </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-4" id="panel_log">
+          <div class="game_panel game_panel_messages game_messages messages">
+            <span id="game_messages" class="game_messages_log"></span>
+          </div>
+          <br />
+          <div class="game_panel game_panel_exceptions game_messages game_exceptions messages">
+            <span id="game_exceptions" class="game_messages_log"></span>
+          </div>
+        </div>
+        
+        <div class="col-md-4" id="panel_options">
           <div class="game_ui">
             <div class="form-group">
               <div class="checkbox"><label><input type="checkbox" id="log_calls1"> Log Calls</label></div>
@@ -108,17 +118,6 @@
                 <input type="text" id="log_length" class="form-control" aria-label="10000">
               </div>
             </div>
-
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <div class="game_panel game_panel_messages game_messages messages">
-            <span id="game_messages" class="game_messages_log"></span>
-          </div>
-          <br />
-          <div class="game_panel game_panel_exceptions game_messages game_exceptions messages">
-            <span id="game_exceptions" class="game_messages_log"></span>
           </div>
         </div>
       </div>
