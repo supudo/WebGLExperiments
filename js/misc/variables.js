@@ -7,6 +7,7 @@ var availableDemos = [
   [ 'TexAnim', 'TexAnim', 0, '', false, false ],
   [ '2D Rotation', 'Rotate2D', 0, '', false, false ],
   [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos', false, false ],
+  [ 'Complex 3D', 'Complex3D', 0, '', false, false ],
   [ 'OBJ Loader', 'OBJLoader', 0, '', true, true ],
   [ '! Hypersuit', 'Hypersuit', 0, '', false, false ]
 ];
@@ -17,7 +18,7 @@ var animatationFrameID;
 var logCalls = true;
 var logInfo = false;
 var glDebug = false;
-var logReversed = false;
+var logReversed = true;
 var slowMo = false;
 var slowMoFrames = 20;
 var limitLog = true;

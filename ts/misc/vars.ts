@@ -16,7 +16,7 @@ module WebGLDemos {
 
     public static demoIndex: number = 0;
 
-    public static logCalls: boolean = true;
+    public static logCalls: boolean = false;
     public static glDebug: boolean = false;
     public static slowMo: boolean = false;
     public static logInfo: boolean = false;
