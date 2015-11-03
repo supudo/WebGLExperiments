@@ -29,16 +29,11 @@ function OBJLoader(gl, gameCanvas) {
     meshes = {};
     models = {};
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'EnemySpaceship.obj');
+    objLoader.parseObject('../../objects', 'EnemySpaceship.obj', '/objects');
     objLoader.initMeshBuffers();
-    meshes['spaceship'] = objLoader.objMesh;
-
-    showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
-
-    this.initShaders();
-    this.initBuffers();
+    objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
   };
-
+   
   this.changeSettings = function() {
   };
 
@@ -62,6 +57,15 @@ function OBJLoader(gl, gameCanvas) {
   //
   // Private =================================================
   //
+
+  this.imageTexturesLoaded = function() {
+    meshes['spaceship'] = objLoader.objMesh;
+
+    showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
+
+    this.initShaders();
+    this.initBuffers();
+  };
 
   this.initShaders = function() {
     showMessageInfo('[OBJLoader] - InitShaders');

@@ -16,8 +16,9 @@ function WebGLObjLoader(gl) {
   // Private variables =================================================
   //
 
-  var objString, objFilePath, objFilename;
+  var objString, objFilePath, objFilename, objImagePath, objTextureImages;
 
+  var objMaterials = [];
   var geometricVertices = [];
   var textureCoordinates = [];
   var vertexNormals = [];
@@ -34,6 +35,7 @@ function WebGLObjLoader(gl) {
   var regex_polygonalFacesSingle = "/";
   var regex_materialFile = /^mtllib\s/;
   var regex_whiteSpace = /\s+/;
+  var regex_useMaterial = /^usemtl\s/;
 
   var regex_materialNew = /^newmtl\s/;
   var regex_materialAmbient = /^Ka\s/;
@@ -68,10 +70,11 @@ function WebGLObjLoader(gl) {
   // Public =================================================
   //
 
-  WebGLObjLoader.prototype.parseObject = function(filePath, fileName) {
+  WebGLObjLoader.prototype.parseObject = function(filePath, fileName, imagePath) {
     this.objMesh = {};
     objFilePath = filePath;
     objFilename = fileName;
+    objImagePath = imagePath;
     unpacked.verts = [];
     unpacked.norms = [];
     unpacked.textures = [];
@@ -87,6 +90,38 @@ function WebGLObjLoader(gl) {
     this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
     this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
     this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
+  };
+
+  WebGLObjLoader.prototype.preloadTextureImages = function(callback) {
+    objTextureImages = {};
+    var allMaterialImages = [];
+    for (var i=0; i<this.objMesh.materials.length; i++) {
+      var mat = this.objMesh.materials[i];
+
+      for (var j=0; j<mat.textures.ambient.length; j++) {
+        allMaterialImages.push(objImagePath + '/' + mat.textures.ambient[j].image);
+      }
+      
+      for (var j=0; j<mat.textures.density.length; j++) {
+        allMaterialImages.push(objImagePath + '/' + mat.textures.density[j].image);
+      }
+      
+      for (var j=0; j<mat.textures.specular.length; j++) {
+        allMaterialImages.push(objImagePath + '/' + mat.textures.specular[j].image);
+      }
+      
+      for (var j=0; j<mat.textures.specularExp.length; j++) {
+        allMaterialImages.push(objImagePath + '/' + mat.textures.specularExp[j].image);
+      }
+      
+      for (var j=0; j<mat.textures.dissolve.length; j++) {
+        allMaterialImages.push(objImagePath + '/' + mat.textures.dissolve[j].image);
+      }
+    }
+    var that = this;
+    this.preloadImages(allMaterialImages, function(images) {
+      that.textureImagesLoaded(images, callback);
+    });
   };
 
   //
@@ -172,12 +207,12 @@ function WebGLObjLoader(gl) {
     this.objMesh.textureCoordinates = unpacked.textures;
     this.objMesh.vertexNormals = unpacked.norms;
     this.objMesh.indices = unpacked.indices;
+    this.objMesh.materials = objMaterials;
   };
 
   this.loadMaterial = function(mtlFile) {
     var materialFileContents = this.loadFile(objFilePath, mtlFile);
     var matLines = materialFileContents.split('\n');
-    var objMaterials = [];
     var singleMaterial;
     for (var i=0; i<matLines.length; i++) {
       var singleLine = matLines[i];
@@ -189,7 +224,7 @@ function WebGLObjLoader(gl) {
 
       if (regex_materialNew.test(singleLine)) {
         singleMaterial = {};
-        singleMaterial.title = lineElements.join(' ');
+        singleMaterial.id = lineElements.join(' ');
         singleMaterial.ambient = [];
         singleMaterial.diffuse = [];
         singleMaterial.specular = [];
@@ -232,7 +267,6 @@ function WebGLObjLoader(gl) {
       else if (regex_materialTextureDissolve.test(singleLine))
         singleMaterial.textures.dissolve.push(this.parseTexture(lineElements.join(' ')));
     }
-    printData(objMaterials);
   };
 
   this.parseTexture = function(textureLine) {
@@ -261,6 +295,63 @@ function WebGLObjLoader(gl) {
     else
       texture.image = textureLine;
     return texture;
+  };
+
+  //
+  // Texture Preloading =================================================
+  //
+
+  this.preloadImages = function(imgs, callback) {
+    var loaded = 0;
+    var images = [];
+    imgs = Object.prototype.toString.apply( imgs ) === '[object Array]' ? imgs : [imgs];
+    var inc = function() {
+      loaded += 1;
+      if (loaded === imgs.length && callback)
+        callback(images);
+    };
+    for (var i=0; i<imgs.length; i++) {
+      images[i] = new Image();
+      images[i].id = imgs[i].replace(objImagePath, '').replace('/', '');
+      images[i].onabort = inc;
+      images[i].onerror = inc;
+      images[i].onload = inc;
+      images[i].src = imgs[i];
+      objTextureImages[images[i].id] = images[i];
+    }
+  };
+
+  this.textureImagesLoaded = function(images, callback) {
+    for (var i=0; i<this.objMesh.materials.length; i++) {
+      var mat = this.objMesh.materials[i];
+      var img;
+
+      for (var j=0; j<mat.textures.ambient.length; j++) {
+        img = mat.textures.ambient[j].image;
+        this.objMesh.materials[i].textures.ambient[j].loadedImage = objTextureImages[img];
+      }
+      
+      for (var j=0; j<mat.textures.density.length; j++) {
+        img = mat.textures.density[j].image;
+        this.objMesh.materials[i].textures.density[j].loadedImage = objTextureImages[img];
+      }
+      
+      for (var j=0; j<mat.textures.specular.length; j++) {
+        img = mat.textures.specular[j].image;
+        this.objMesh.materials[i].textures.specular[j].loadedImage = objTextureImages[img];
+      }
+      
+      for (var j=0; j<mat.textures.specularExp.length; j++) {
+        img = mat.textures.specularExp[j].image;
+        this.objMesh.materials[i].textures.specularExp[j].loadedImage = objTextureImages[img];
+      }
+      
+      for (var j=0; j<mat.textures.dissolve.length; j++) {
+        img = mat.textures.dissolve[j].image;
+        this.objMesh.materials[i].textures.dissolve[j].loadedImage = objTextureImages[img];
+      }
+    }
+    callback();
   };
 
   //
