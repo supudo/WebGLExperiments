@@ -4,8 +4,7 @@ function OBJLoader(gl, gameCanvas) {
   // Variables =================================================
   //
 
-  var objLoader;
-  var meshes, models;
+  var objLoader, meshes, models, everythingInitalized;
 
   var vertexPositionAttribute, vertexNormalAttribute, textureCoordAttribute;
   var pMatrixUniform, mvMatrixUniform, nMatrixUniform;
@@ -26,6 +25,7 @@ function OBJLoader(gl, gameCanvas) {
   this.init = function() {
     showMessageInfo('[OBJLoader] - init');
 
+    everythingInitalized = false;
     meshes = {};
     models = {};
     objLoader = new WebGLObjLoader(gl);
@@ -38,7 +38,8 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.run = function(frames) {
-    //this.drawScene();
+    if (everythingInitalized)
+      this.drawScene();
   };
 
   this.release = function() {
@@ -65,6 +66,7 @@ function OBJLoader(gl, gameCanvas) {
 
     this.initShaders();
     this.initBuffers();
+    everythingInitalized = true;
   };
 
   this.initShaders = function() {
@@ -128,7 +130,7 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.drawSpaceship = function() {
-    this.drawObject(models.spaceship);
+    this.drawObject(models['spaceship']);
   };
 
   this.initBuffers = function() {
@@ -140,8 +142,6 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.drawObject = function(model, shininess, color) {
-    gl.useProgram(shaderProgram);
-    
     gl.bindBuffer(gl.ARRAY_BUFFER, model.bufferVertex);
     gl.vertexAttribPointer(vertexPositionAttribute, model.bufferVertex.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -151,17 +151,19 @@ function OBJLoader(gl, gameCanvas) {
     gl.bindBuffer(gl.ARRAY_BUFFER, model.bufferNormal);
     gl.vertexAttribPointer(vertexNormalAttribute, model.bufferNormal.itemSize, gl.FLOAT, false, 0, 0);
 
-    if (model.textureCoordinates.length) {
+    if (!model.textureCoordinates.length) {
+      var t = models['spaceship'].materials[0].textures.density[0].loadedImage;
+
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, model.texture);
+      gl.bindTexture(gl.TEXTURE_2D, model);
       gl.uniform1i(samplerUniform, 0);
       gl.uniform1i(hasTexure, true);
     }
     else {
       gl.uniform1i(hasTexure, false);
-      gl.uniform4fv(modelColor, color);
+      gl.uniform4f(modelColor, Math.random(), Math.random(), Math.random(), 1);
     }
-    
+
     if (shininess)
       gl.uniform1f(materialShininessUniform, shininess);
     else
