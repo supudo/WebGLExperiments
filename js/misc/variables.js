@@ -1,22 +1,22 @@
 var availableDemos = [
-  [ 'Select Demo', '', 0, '' ],
-  [ 'Stars', 'Stars', 0, '' ],
-  [ 'Falling Star', 'FallingStar', 0, '' ],
-  [ 'Starfield', 'Starfield', 0, '' ],
-  [ 'TexAnim', 'TexAnim', 0, '' ],
-  [ '2D Rotation', 'Rotate2D', 0, '' ],
-  [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos' ],
-  [ 'OBJ Loader', 'OBJLoader', 0, '' ],
-  [ '! Hypersuit', 'Hypersuit', 0, '' ]
+  [ 'Select Demo', '', 0, '', false ],
+  [ 'Stars', 'Stars', 0, '', false ],
+  [ 'Falling Star', 'FallingStar', 0, '', false ],
+  [ 'Starfield', 'Starfield', 0, '', false ],
+  [ 'TexAnim', 'TexAnim', 0, '', false ],
+  [ '2D Rotation', 'Rotate2D', 0, '', false ],
+  [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos', false ],
+  [ 'OBJ Loader', 'OBJLoader', 0, '', true ],
+  [ '! Hypersuit', 'Hypersuit', 0, '', false ]
 ];
 
 var demoIndex = 0;
 var animatationFrameID;
 
 var logCalls = true;
+var logInfo = false;
 var glDebug = false;
 var slowMo = false;
-var logInfo = false;
 var slowMoFrames = 20;
 var limitLog = true;
 var logLength = 10000;

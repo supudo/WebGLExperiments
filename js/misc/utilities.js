@@ -140,7 +140,7 @@ var getSourceSynch = function(url) {
   var req = new XMLHttpRequest();
   req.open("GET", url, false);
   req.send(null);
-  showMessage('External source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
+  showMessageInfo('External source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
   return (req.status == 200) ? req.responseText : null;
 };
 

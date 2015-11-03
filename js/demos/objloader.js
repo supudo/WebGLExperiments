@@ -4,25 +4,20 @@ function OBJLoader(gl, gameCanvas) {
   // Variables =================================================
   //
 
-  var objLoader, mesh;
-  var matrixLocation, positionLocation, resolutionLocation;
-  var shaderProgram, shaderVertex, shaderFragment;
-  var bufferVertices;
+  var objLoader;
+  var meshes, models;
 
-  var coords = [
-    1.000000, -1.000000,
-    -1.000000, 1.000000,
-    -1.000000, 1.000000,
-    -1.000000, -1.000000,
-    1.000000, -1.000000,
-    -1.000000, -1.000000,
-    1.000000, 1.000000,
-    -0.999999, 0.999999,
-    1.000000, 1.000001,
-    -1.000000, 1.000000,
-    1.000000, -1.000000,
-    1.000000, -1.000000
-  ];
+  var vertexPositionAttribute, vertexNormalAttribute, textureCoordAttribute;
+  var pMatrixUniform, mvMatrixUniform, nMatrixUniform;
+  var samplerUniform, modelColor, materialShininessUniform;
+  var useTexturesUniform, ambientColorUniform;
+  var hasTexure, hasFlashlight, lightLocation;
+  var lightVector, lightSpecularColor, lightDiffuseColor;
+
+  var shaderProgram, shaderVertex, shaderFragment;
+
+  var pMatrix = mat4.create();
+  var mvMatrix = mat4.create();
 
   //
   // Public =================================================
@@ -31,14 +26,17 @@ function OBJLoader(gl, gameCanvas) {
   this.init = function() {
     showMessageInfo('[OBJLoader] - init');
 
+    meshes = {};
+    models = {};
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects/cube.obj');
-    mesh = objLoader.setupBuffers();
+    objLoader.parseObject('../../objects/EnemySpaceship.obj');
+    objLoader.initMeshBuffers();
+    meshes['spaceship'] = objLoader.objMesh;
+
     showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
 
     this.initShaders();
-
-    gl.enable(gl.DEPTH_TEST);
+    this.initBuffers();
   };
 
   this.changeSettings = function() {
@@ -49,10 +47,13 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.release = function() {
-    objLoader.release();
-    gl.deleteShader(shaderFragment);
-    gl.deleteShader(shaderVertex);
-    gl.deleteProgram(shaderProgram);
+    try {
+      objLoader.release();
+      gl.deleteShader(shaderFragment);
+      gl.deleteShader(shaderVertex);
+      gl.deleteProgram(shaderProgram);
+    }
+    catch (e) {}
   };
 
   this.gameUI_handleKey = function(charCode) {
@@ -77,43 +78,116 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.useProgram(shaderProgram);
 
-    positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
-    resolutionLocation = gl.getUniformLocation(shaderProgram, "u_resolution");
+    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(vertexPositionAttribute);
 
-    bufferVertices = gl.createBuffer();
+    vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+
+    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(textureCoordAttribute);
+
+    pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+    samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+    modelColor = gl.getUniformLocation(shaderProgram, "uColor");
+    materialShininessUniform = gl.getUniformLocation(shaderProgram, "uMaterialShininess");
+    useTexturesUniform = gl.getUniformLocation(shaderProgram, "uUseTextures");
+    ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+    hasTexure = gl.getUniformLocation(shaderProgram, "uHasTexure");
+    hasFlashlight = gl.getUniformLocation(shaderProgram, "uHasFlashlight");
+    lightLocation = gl.getUniformLocation(shaderProgram, "uLightLocation");
+    lightVector = gl.getUniformLocation(shaderProgram, "uSpotDirection");
+    lightSpecularColor = gl.getUniformLocation(shaderProgram, "uLightSpecularColor");
+    lightDiffuseColor = gl.getUniformLocation(shaderProgram, "uLightDiffuseColor");
+
+    gl.viewportWidth = gameCanvas.width;
+    gl.viewportHeight = gameCanvas.height;
   };
 
   this.drawScene = function() {
     showMessageInfo('[OBJLoader] - DrawScene');
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.uniform2f(resolutionLocation, gameCanvas.width, gameCanvas.height);
+    gl.viewport(0, 0, gameCanvas.width, gameCanvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.01, 1000.0, pMatrix);
+    mat4.identity(mvMatrix);
 
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        1.000000, -1.000000,
-        -1.000000, 1.000000,
-        -1.000000, 1.000000,
-        -1.000000, -1.000000,
-        1.000000, -1.000000,
-        -1.000000, -1.000000,
-        1.000000, 1.000000,
-        -0.999999, 0.999999,
-        1.000000, 1.000001,
-        -1.000000, 1.000000,
-        1.000000, -1.000000,
-        1.000000, -1.000000
-      ]),
-      gl.STATIC_DRAW
-    );
+    mat4.translate(mvMatrix, [100, 0, 1]);
+  
+    this.setUniforms();
+    mat4.translate(mvMatrix, [0, .1, -.5]);
+    this.drawSpaceship();
+  };
 
-    gl.drawArrays(gl.TRIANGLES, 0, 12);
-    //gl.drawArrays(gl.POINTS, 0, coords.length / 3);
-    //gl.drawElements(gl.TRIANGLES, mesh.bufferGeometricVertices.numItems, gl.UNSIGNED_SHORT, 0);
+  this.drawSpaceship = function() {
+    this.drawObject(models.spaceship);
+  };
+
+  this.initBuffers = function() {
+    for (mesh in meshes) {
+      objLoader.initMeshBuffers(meshes[mesh]);
+      models[mesh] = {};
+      models[mesh] = meshes[mesh];
+    }
+  };
+
+  this.drawObject = function(model, shininess, color) {
+    gl.useProgram(shaderProgram);
+    
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.bufferVertex);
+    gl.vertexAttribPointer(vertexPositionAttribute, model.bufferVertex.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.bufferTexture);
+    gl.vertexAttribPointer(textureCoordAttribute, model.bufferTexture.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.bufferNormal);
+    gl.vertexAttribPointer(vertexNormalAttribute, model.bufferNormal.itemSize, gl.FLOAT, false, 0, 0);
+
+    if (model.textureCoordinates.length) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, model.texture);
+      gl.uniform1i(samplerUniform, 0);
+      gl.uniform1i(hasTexure, true);
+    }
+    else {
+      gl.uniform1i(hasTexure, false);
+      gl.uniform4fv(modelColor, color);
+    }
+    
+    if (shininess)
+      gl.uniform1f(materialShininessUniform, shininess);
+    else
+      gl.uniform1f(materialShininessUniform, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.bufferIndex);
+    this.setMatrixUniforms();
+    gl.drawElements(gl.TRIANGLES, model.bufferIndex.numItems, gl.UNSIGNED_SHORT, 0);
+  };
+
+  this.setMatrixUniforms = function() {
+    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
+
+    var normalMatrix = mat3.create();
+    mat4.toInverseMat3(mvMatrix, normalMatrix);
+    mat3.transpose(normalMatrix);
+    gl.uniformMatrix3fv(nMatrixUniform, false, normalMatrix);
+  };
+
+  this.setUniforms = function() {
+    var ambientIntensity = 0.5;
+    var diffuseIntensity = 2.0;
+    gl.uniform3fv(ambientColorUniform, this.lightIntesity(ambientIntensity, 0.3, 0.3, 0.3));
+    gl.uniform3fv(lightSpecularColor, this.lightIntesity(0.5, 1.0, 1.0, 1.0));
+    gl.uniform3fv(lightDiffuseColor, this.lightIntesity(diffuseIntensity, 1.0, 1.0, 1.0));
+    gl.uniform1i(hasFlashlight, 0);
+  };
+
+  this.lightIntesity = function(i, r, g, b) {
+    return [i * r, i * g, i * b];
   };
 };

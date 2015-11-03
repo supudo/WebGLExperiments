@@ -1,28 +1,30 @@
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file#File_format
+'use strict';
 
 function WebGLObjLoader(gl) {
 
   //
-  // Variables =================================================
+  // Public variables =================================================
+  //
+
+  // object title
+  this.objTitle = '';
+  // final mesh
+  this.objMesh = {};
+
+  //
+  // Private variables =================================================
   //
 
   var objString;
-  var mesh = {};
 
-  var objTitle = '';
-
-  // geometric vertices
   var geometricVertices = [];
-  // texture coordinates
   var textureCoordinates = [];
-  // vertex normals
   var vertexNormals = [];
-  // space vertices
   var spaceVertices = [];
-  // polygonal faces
   var polygonalFaces = [];
+  var unpacked = {};
 
-  // regex for line identifiers
   var regex_objTitle = /^o\s/;
   var regex_geometricVertices = /^v\s/;
   var regex_textureCoordinates = /^vt\s/;
@@ -36,39 +38,28 @@ function WebGLObjLoader(gl) {
   // Public =================================================
   //
 
-  this.parseObject = function(objFileURL) {
-    this.initLoader(objFileURL);
-  };
-
-  this.setupBuffers = function() {
-    return this.initBuffers();
-  };
-
-  this.release = function() {
-    this.objString = '';
-    geometricVertices = [];
-    textureCoordinates = [];
-    vertexNormals = [];
-    spaceVertices = [];
-    polygonalFaces = [];
-    this.deleteBuffers();
+  WebGLObjLoader.prototype.parseObject = function(objFileURL) {
+    this.objMesh = {};
+    unpacked.verts = [];
+    unpacked.norms = [];
+    unpacked.textures = [];
+    unpacked.hashIndices = {};
+    unpacked.indices = [];
+    unpacked.index = 0;
+    this.loadFile(objFileURL);
   };
 
   //
-  // Parsing =================================================
+  // Private =================================================
   //
 
   this.processOBJ = function() {
     var objLines = objString.split('\n');
     for (var i=0; i<objLines.length; i++) {
-      // single line
       var singleLine = objLines[i];
-      // line elements
       var lineElements = singleLine.split(regex_whiteSpace);
-      // remove line identifier
       lineElements.shift();
 
-      // check which section we're in
       if (regex_objTitle.test(singleLine))
         this.objTitle = lineElements.join(' ');
       else if (regex_geometricVertices.test(singleLine))
@@ -91,25 +82,65 @@ function WebGLObjLoader(gl) {
          * 'f v2/t2/vn2 v3/t3/vn3 v0/t0/vn0'
          *
          */
-        // TODO: ...
-        // f 1/1/1 2/2/1 3/3/1 4/4/1
-        var lineFaces = singleLine.split(regex_whiteSpace);
-        lineFaces.shift();
-        for (var f=0; f<lineFaces.length; f++) {
-          polygonalFaces.push.apply(polygonalFaces, lineFaces[f].split(regex_polygonalFacesSingle));
+        // quads ...
+        var quad = false;
+        for (var j=0; j<lineElements.length; j++) {
+          if (j === 3 && !quad) {
+            j = 2;
+            quad = true;
+          }
+
+          if (lineElements[j] in unpacked.hashIndices)
+            unpacked.indices.push(unpacked.hashIndices[lineElements[j]]);
+          else {
+            var singleFace = lineElements[j].split('/');
+
+            var v_idx = ((singleFace[0] - 1) * 3);
+            unpacked.verts.push(+geometricVertices[v_idx + 0]);
+            unpacked.verts.push(+geometricVertices[v_idx + 1]);
+            unpacked.verts.push(+geometricVertices[v_idx + 2]);
+
+            if (textureCoordinates.length) {
+              var t_idx = ((singleFace[1] - 1) * 2);
+              unpacked.textures.push(+textureCoordinates[t_idx + 0]);
+              unpacked.textures.push(+textureCoordinates[t_idx + 1]);
+            }
+
+            var n_idx = ((singleFace[2] - 1) * 3);
+            unpacked.norms.push(+vertexNormals[n_idx + 0]);
+            unpacked.norms.push(+vertexNormals[n_idx + 1]);
+            unpacked.norms.push(+vertexNormals[n_idx + 2]);
+
+            unpacked.hashIndices[lineElements[j]] = unpacked.index;
+            unpacked.indices.push(unpacked.index);
+            unpacked.index += 1;
+
+            //var dOutput = '[' + j + '] = (' + singleFace + ')\n';
+            //dOutput += 'VER = ' + v_idx + ' = ' + (+geometricVertices[v_idx + 0]) + ' ' + (+geometricVertices[v_idx + 1]) + ' ' + (+geometricVertices[v_idx + 2]) + '\n';
+            //dOutput += 'TEX = ' + t_idx + ' = ' + (+textureCoordinates[t_idx + 0]) + ' ' + (+textureCoordinates[t_idx + 1]) + '\n';
+            //dOutput += 'NOR = ' + n_idx + ' = ' + (+vertexNormals[n_idx + 0]) + ' ' + (+vertexNormals[n_idx + 1]) + '\n';
+            //showMessage('<pre><code>' + dOutput + '</code></pre>');
+          }
+          if (j === 3 && quad)
+            unpacked.indices.push(unpacked.hashIndices[lineElements[0]]);
         }
       }
     }
+    this.objMesh.geometricVertices = unpacked.verts;
+    this.objMesh.textureCoordinates = unpacked.textures;
+    this.objMesh.vertexNormals = unpacked.norms;
+    this.objMesh.indices = unpacked.indices;
   };
 
-  this.initBuffers = function() {
-    showMessage(geometricVertices);
-    mesh.bufferGeometricVertices = this.buildBuffer(gl.ARRAY_BUFFER, geometricVertices, 3);
-    mesh.bufferTextureCoordinates = this.buildBuffer(gl.ARRAY_BUFFER, textureCoordinates, 3);
-    mesh.bufferVertexNormals = this.buildBuffer(gl.ARRAY_BUFFER, vertexNormals, 3);
-    mesh.bufferSpaceVertices = this.buildBuffer(gl.ARRAY_BUFFER, spaceVertices, 3);
-    mesh.bufferPolygonalFaces = this.buildBuffer(gl.ARRAY_BUFFER, polygonalFaces, 3);
-    return mesh;
+  //
+  // Utilities =================================================
+  //
+
+  this.initMeshBuffers = function() {
+    this.objMesh.bufferNormal = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.vertexNormals, 3);
+    this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
+    this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
+    this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
   };
 
   this.buildBuffer = function(type, data, itemSize) {
@@ -122,24 +153,11 @@ function WebGLObjLoader(gl) {
     return buffer;
   };
 
-
-  this.deleteBuffers = function() {
-    gl.deleteBuffer(mesh.bufferGeometricVertices);
-    gl.deleteBuffer(mesh.bufferTextureCoordinates);
-    gl.deleteBuffer(mesh.bufferVertexNormals);
-    gl.deleteBuffer(mesh.bufferSpaceVertices);
-    gl.deleteBuffer(mesh.bufferPolygonalFaces);
-  };
-
-  //
-  // Utilities =================================================
-  //
-
-  this.initLoader = function(objFileURL) {
+  this.loadFile = function(objFileURL) {
     var req = new XMLHttpRequest();
     req.open("GET", objFileURL, false);
     req.send(null);
-    showMessage('External source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
+    showMessageInfo('External source loaded : <br /><pre><code>' + req.responseText + '</code></pre>');
     if (req.status == 200) {
       objString = req.responseText;
       this.processOBJ();
