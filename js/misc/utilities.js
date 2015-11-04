@@ -79,6 +79,16 @@ function printData(obj) {
   showMessage('<pre><code>' + JSON.stringify(obj, null, 2) + '</code></pre>');
 }
 
+function printJSONData(obj) {
+  var d = new Date();
+  var json_id = d.getTime();
+  if (!logReversed)
+    $("#game_messages").append($('<div/>').attr('id', json_id).css('background-color', '#ffffff').html(''));
+  else
+    $("#game_messages").prepend($('<div/>').attr('id', json_id).css('background-color', '#ffffff').html(''));
+  $('#' + json_id).JSONView(obj, { collapsed: true, nl2br: true, recursive_collapser: false });
+}
+
 function getRandom(max) {
   return (Math.random() * max) + 1;
 }

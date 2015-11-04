@@ -29,12 +29,13 @@ function OBJLoader(gl, gameCanvas) {
     meshes = {};
     models = {};
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'cube.obj', '/objects');
-    objLoader.initMeshBuffers();
-    if (objLoader.objMesh.hasTextureImages)
-      objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
-    else
-      this.imageTexturesLoaded();
+    objLoader.parseObject('../../objects', 'multi.obj', '/objects');
+    printJSONData(objLoader.objScene);
+    //objLoader.initMeshBuffers();
+    //if (objLoader.objMesh.hasTextureImages)
+    //  objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
+    //else
+    //  this.imageTexturesLoaded();
   };
    
   this.changeSettings = function() {
@@ -42,8 +43,8 @@ function OBJLoader(gl, gameCanvas) {
 
   this.run = function(frames) {
     if (everythingInitalized) {
-      showMessageInfo('[OBJLoader] - run');
-      this.drawScene();
+      //showMessageInfo('[OBJLoader] - run');
+      //this.drawScene();
     }
   };
 

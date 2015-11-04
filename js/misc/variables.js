@@ -22,7 +22,7 @@ var logReversed = true;
 var slowMo = false;
 var slowMoFrames = 20;
 var limitLog = true;
-var logLength = 10000;
+var logLength = 10000000;
 
 var gl = null;
 

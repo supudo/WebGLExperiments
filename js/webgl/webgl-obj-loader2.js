@@ -7,8 +7,6 @@ function WebGLObjLoader(gl) {
   // Public variables =================================================
   //
 
-  // scene
-  this.objScene = {}
   // object title
   this.objTitle = '';
   // final mesh
@@ -18,9 +16,7 @@ function WebGLObjLoader(gl) {
   // Private variables =================================================
   //
 
-  var objString, objFilePath, objFilename;
-  var objImagePath, objTextureImages, objModels;
-  var objHasTextureImages;
+  var objString, objFilePath, objFilename, objImagePath, objTextureImages;
 
   var objMaterials = [];
   var geometricVertices = [];
@@ -29,8 +25,8 @@ function WebGLObjLoader(gl) {
   var spaceVertices = [];
   var polygonalFaces = [];
   var unpacked = {};
+  var hasTextureImages = false;
 
-  var regex_comment = /^#\s/;
   var regex_objTitle = /^o\s/;
   var regex_geometricVertices = /^v\s/;
   var regex_textureCoordinates = /^vt\s/;
@@ -76,25 +72,18 @@ function WebGLObjLoader(gl) {
   //
 
   WebGLObjLoader.prototype.parseObject = function(filePath, fileName, imagePath) {
-    this.objScene = {};
-    this.objTitle = fileName.replace('.obj', '');
     this.objMesh = {};
-    this.objModels = [];
-
     objFilePath = filePath;
     objFilename = fileName;
     objImagePath = imagePath;
-
     unpacked.verts = [];
     unpacked.norms = [];
     unpacked.textures = [];
     unpacked.hashIndices = {};
     unpacked.indices = [];
     unpacked.index = 0;
-
-    objHasTextureImages = false;
+    hasTextureImages = false;
     objString = this.loadFile(objFilePath, objFilename);
-
     this.processOBJ();
   };
 
@@ -131,6 +120,7 @@ function WebGLObjLoader(gl) {
         allMaterialImages.push(objImagePath + '/' + mat.textures.dissolve[j].image);
       }
     }
+    this.objMesh.hasTextures = true;
     var that = this;
     this.preloadImages(allMaterialImages, function(images) {
       that.textureImagesLoaded(images, callback);
@@ -143,35 +133,14 @@ function WebGLObjLoader(gl) {
 
   this.processOBJ = function() {
     var objLines = objString.split('\n');
-    var singleModel = null;
     for (var i=0; i<objLines.length; i++) {
       var singleLine = objLines[i];
       var lineElements = singleLine.split(regex_whiteSpace);
       lineElements.shift();
 
-      if (singleLine == '' || regex_comment.test(singleLine))
-        continue;
-
-      if (regex_objTitle.test(singleLine) || regex_materialFile.test(singleLine)) {
-        singleModel = {};
-        if (regex_objTitle.test(singleLine)) {
-          singleModel.id = lineElements.join(' ');
-
-        singleModel.geometricVertices = [];
-        singleModel.textureCoordinates = [];
-        singleModel.vertexNormals = [];
-        singleModel.indices = [];
-        //singleModel.geometricVertices = unpacked.verts;
-        //singleModel.textureCoordinates = unpacked.textures;
-        //singleModel.vertexNormals = unpacked.norms;
-        //singleModel.indices = unpacked.indices;
-        //singleModel.materials = objMaterials;
-
-        this.objModels.push(singleModel);
-        }
-      }
-
-      if (regex_materialFile.test(singleLine))
+      if (regex_objTitle.test(singleLine))
+        this.objTitle = lineElements.join(' ');
+      else if (regex_materialFile.test(singleLine))
         this.loadMaterial(lineElements[0]);
       else if (regex_geometricVertices.test(singleLine))
         geometricVertices.push.apply(geometricVertices, lineElements);
@@ -231,9 +200,12 @@ function WebGLObjLoader(gl) {
         }
       }
     }
-    this.objScene.objHasTextureImages = objHasTextureImages;
-    this.objScene.models = this.objModels;
-    this.objScene.materials = objMaterials;
+    this.objMesh.geometricVertices = unpacked.verts;
+    this.objMesh.textureCoordinates = unpacked.textures;
+    this.objMesh.vertexNormals = unpacked.norms;
+    this.objMesh.indices = unpacked.indices;
+    this.objMesh.materials = objMaterials;
+    this.objMesh.hasTextureImages = hasTextureImages;
   };
 
   this.loadMaterial = function(mtlFile) {
@@ -245,13 +217,12 @@ function WebGLObjLoader(gl) {
       var lineElements = singleLine.split(regex_whiteSpace);
       lineElements.shift();
 
-      if (singleLine == '' || regex_comment.test(singleLine))
+      if (singleLine == '')
         continue;
 
       if (regex_materialNew.test(singleLine)) {
         singleMaterial = {};
         singleMaterial.id = lineElements.join(' ');
-        singleMaterial.hasTextureImages = false;
         singleMaterial.ambient = [];
         singleMaterial.diffuse = [];
         singleMaterial.specular = [];
@@ -293,22 +264,13 @@ function WebGLObjLoader(gl) {
         singleMaterial.textures.specularExp.push(this.parseTexture(lineElements.join(' ')));
       else if (regex_materialTextureDissolve.test(singleLine))
         singleMaterial.textures.dissolve.push(this.parseTexture(lineElements.join(' ')));
-
-      if (
-          (singleMaterial.textures.ambient && singleMaterial.textures.ambient.length > 0) ||
-          (singleMaterial.textures.density && singleMaterial.textures.density.length > 0) ||
-          (singleMaterial.textures.specular && singleMaterial.textures.specular.length > 0) ||
-          (singleMaterial.textures.specularExp && singleMaterial.textures.specularExp.length > 0) ||
-          (singleMaterial.textures.dissolve && singleMaterial.textures.dissolve.length > 0)
-         )
-        singleMaterial.hasTextureImages = true;
     }
   };
 
   this.parseTexture = function(textureLine) {
-    objHasTextureImages = true;
     var texture = {};
     var lineElements;
+    hasTextureImages = true;
     if (textureLine.indexOf('-') > -1) {
       lineElements = textureLine.split('-');
 
