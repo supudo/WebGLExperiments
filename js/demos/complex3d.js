@@ -7,7 +7,7 @@ function Complex3D(gl, gameCanvas) {
   var animFrames;
   var matrixLocation, positionLocation, colorLocation;
   var shaderProgram, shaderVertex, shaderFragment;
-  var translation = [45, 150, 0];
+  var translation = [200, 200, 0];
   var rotation = [0, 0, 0];
   var scale = [1, 1, 1];
 
@@ -64,24 +64,25 @@ function Complex3D(gl, gameCanvas) {
     colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
 
-    gl.enable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
-
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     //this.setGeometry3D2();
-    //this.setGeometry3D();
-    this.setGeometryComplex();
+    this.setGeometry3D();
+    //this.setGeometryComplex();
+    //this.setGeometryComplex2();
+    //this.setGeometryCube();
 
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
     //this.setColors2();
-    //this.setColors();
-    this.setColorsComplex();
+    this.setColors();
+    //this.setColorsComplex();
+    //this.setColorsComplex2();
+    //this.setColorsCube();
   };
 
   this.drawScene = function() {
@@ -89,14 +90,14 @@ function Complex3D(gl, gameCanvas) {
 
     rotation = [this.degToRad(40), this.degToRad(25), this.degToRad(325)];
 
-    gl.enable(gl.CULL_FACE);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var projectionMatrix = this.make2DProjection(gameCanvas.width, gameCanvas.height, 400);
     var translationMatrix = this.makeTranslation(translation[0], translation[1], translation[2]);
     var rotationXMatrix = this.makeXRotation(rotation[0]);
     var rotationYMatrix = this.makeYRotation(rotation[1]);
-    var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 10);
+    //var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 10);
+    var rotationZMatrix = this.makeZRotation(rotation[2]);
     var scaleMatrix = this.makeScale(scale[0], scale[1], scale[2]);
 
     var matrix = this.matrixMultiply(scaleMatrix, rotationZMatrix);
@@ -108,8 +109,74 @@ function Complex3D(gl, gameCanvas) {
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
     //gl.drawArrays(gl.TRIANGLES, 0, 6);
-    //gl.drawArrays(gl.TRIANGLES, 0, 16 * 6);
-    gl.drawArrays(gl.TRIANGLES, 0, 8);
+    gl.drawArrays(gl.TRIANGLES, 0, 16 * 6);
+    //gl.drawArrays(gl.TRIANGLES, 0, 8);
+    //gl.drawArrays(gl.TRIANGLES, 0, 20);
+    //gl.drawArrays(gl.TRIANGLES, 0, 8);
+  };
+
+  this.setGeometryCube = function() {
+    var v = [
+      1.000000, -1.000000, -1.000000,
+      1.000000, -1.000000, 1.000000,
+      -1.000000, -1.000000, 1.000000,
+      -1.000000, -1.000000, -1.000000,
+      1.000000, 1.000000, -0.999999,
+      0.999999, 1.000000, 1.000001,
+      -1.000000, 1.000000, 1.000000,
+      -1.000000, 1.000000, -1.000000
+    ];
+    var vv = [];
+    for (var i=0; i<v.length; i++) {
+      vv.push(v[i] * 100);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
+  };
+
+  this.setColorsCube = function() {
+    var colors = [];
+    for (var i=0; i<8; i++) {
+      colors.push(200,  70, 120);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
+  };
+
+  this.setGeometryComplex2 = function() {
+    var v = [
+      0.778618, 0.192053, -1.027196,
+      0.778618, -0.544732, 0.972804,
+      -1.221382, 0.043105, 0.972804,
+      -1.221381, -0.544732, -1.027197,
+      0.778619, 1.017574, -1.027196,
+      0.778618, 1.455268, 0.972804,
+      -1.431565, 1.020429, 1.343192,
+      -1.221382, 1.455268, -1.027196,
+      0.778618, 0.192053, -1.027196,
+      0.778618, -0.544732, 0.972804,
+      0.778619, 1.017574, -1.027196,
+      0.778618, 1.455268, 0.972804,
+      1.240047, 0.192053, -1.027196,
+      1.240047, -0.544732, 0.972804,
+      1.240048, 1.017574, -1.027196,
+      1.240047, 1.455268, 0.972804,
+      1.240047, 0.192053, -1.027196,
+      1.240047, -0.544732, 0.972804,
+      1.240048, 1.017574, -1.027196,
+      1.240047, 1.455268, 0.972804
+    ];
+    var vv = [];
+    for (var i=0; i<v.length; i++) {
+      vv.push(v[i] * 100);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
+  };
+
+  this.setColorsComplex2 = function() {
+    var colors = [];
+    for (var i=0; i<20; i++) {
+      colors.push(200,  70, 120);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
   };
 
   this.setGeometryComplex = function() {
@@ -135,7 +202,6 @@ function Complex3D(gl, gameCanvas) {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Uint8Array([
-          // left column front
         200,  70, 120,
         200,  70, 120,
         200,  70, 120,
@@ -152,7 +218,6 @@ function Complex3D(gl, gameCanvas) {
    gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
-        // left column front
         0,   0,  0,
         0, 150,  0,
         30,   0,  0,
@@ -167,7 +232,6 @@ function Complex3D(gl, gameCanvas) {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Uint8Array([
-          // left column front
         200,  70, 120,
         200,  70, 120,
         200,  70, 120,
