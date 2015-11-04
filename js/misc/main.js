@@ -47,8 +47,6 @@ function startGame(demoIndex) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
-    if (availableDemos[demoIndex][4])
-      gl.enable(gl.DEPTH_TEST);
 
     var testsRoutines = new Tests();
     testsRoutines.runTests(gl, gameCanvas);

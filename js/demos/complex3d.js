@@ -64,25 +64,30 @@ function Complex3D(gl, gameCanvas) {
     colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
 
+    //gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-    //this.setGeometry3D2();
-    this.setGeometry3D();
+    this.setGeometry3D2();
+    //this.setGeometry3D();
     //this.setGeometryComplex();
     //this.setGeometryComplex2();
     //this.setGeometryCube();
+    this.setGeometryX();
 
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
     //this.setColors2();
-    this.setColors();
+    //this.setColors();
     //this.setColorsComplex();
     //this.setColorsComplex2();
     //this.setColorsCube();
+    this.setColorsX();
   };
 
   this.drawScene = function() {
@@ -96,8 +101,8 @@ function Complex3D(gl, gameCanvas) {
     var translationMatrix = this.makeTranslation(translation[0], translation[1], translation[2]);
     var rotationXMatrix = this.makeXRotation(rotation[0]);
     var rotationYMatrix = this.makeYRotation(rotation[1]);
-    //var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 10);
-    var rotationZMatrix = this.makeZRotation(rotation[2]);
+    var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 10);
+    //var rotationZMatrix = this.makeZRotation(rotation[2]);
     var scaleMatrix = this.makeScale(scale[0], scale[1], scale[2]);
 
     var matrix = this.matrixMultiply(scaleMatrix, rotationZMatrix);
@@ -109,10 +114,65 @@ function Complex3D(gl, gameCanvas) {
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
     //gl.drawArrays(gl.TRIANGLES, 0, 6);
-    gl.drawArrays(gl.TRIANGLES, 0, 16 * 6);
-    //gl.drawArrays(gl.TRIANGLES, 0, 8);
+    //gl.drawArrays(gl.TRIANGLES, 0, 16 * 6);
     //gl.drawArrays(gl.TRIANGLES, 0, 20);
     //gl.drawArrays(gl.TRIANGLES, 0, 8);
+    gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
+  };
+
+  this.setGeometryX = function() {
+    var v = [
+      0, 0, 0,
+      100, 0, 0,
+      0, 100, 0,
+      100, 0, 0,
+      0, 100, 0,
+      100, 100, 0,
+
+      0, 0, 0,
+      0, 0, 100,
+      0, 100, 0,
+      0, 0, 100,
+      0, 100, 0,
+      0, 100, 100,
+
+      0, 0, 0,
+      100, 0, 0,
+      0, 0, 100,
+      100, 0, 0,
+      0, 0, 100,
+      100, 0, 100,
+
+      100, 0, 0,
+      100, 0, 100,
+      100, 100, 0,
+      100, 0, 100,
+      100, 100, 0,
+      100, 100, 100,
+
+      0, 100, 0,
+      0, 100, 100,
+      100, 100, 0,
+      100, 100, 0,
+      0, 100, 100,
+      100, 100, 100,
+
+      0, 0, 10,
+      100, 0, 100,
+      0, 100, 100,
+      100, 0, 100,
+      0, 100, 100,
+      100, 100, 100
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
+  };
+
+  this.setColorsX = function() {
+    var colors = [];
+    for (var i=0; i<36; i++) {
+      colors.push(200 + i,  70 + i, 120 + i);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
   };
 
   this.setGeometryCube = function() {
@@ -247,132 +307,133 @@ function Complex3D(gl, gameCanvas) {
       gl.ARRAY_BUFFER,
       new Float32Array([
         // left column front
-        0,   0,  0,
-        0, 150,  0,
-        30,   0,  0,
-        0, 150,  0,
-        30, 150,  0,
-        30,   0,  0,
+        // left column front
+          0,   0,  0,
+          0, 150,  0,
+          30,   0,  0,
+          0, 150,  0,
+          30, 150,  0,
+          30,   0,  0,
 
-        // top rung front
-        30,   0,  0,
-        30,  30,  0,
-        100,   0,  0,
-        30,  30,  0,
-        100,  30,  0,
-        100,   0,  0,
+          // top rung front
+          30,   0,  0,
+          30,  30,  0,
+          100,   0,  0,
+          30,  30,  0,
+          100,  30,  0,
+          100,   0,  0,
 
-        // middle rung front
-        30,  60,  0,
-        30,  90,  0,
-        67,  60,  0,
-        30,  90,  0,
-        67,  90,  0,
-        67,  60,  0,
+          // middle rung front
+          30,  60,  0,
+          30,  90,  0,
+          67,  60,  0,
+          30,  90,  0,
+          67,  90,  0,
+          67,  60,  0,
 
-        // left column back
-          0,   0,  30,
-         30,   0,  30,
-          0, 150,  30,
-          0, 150,  30,
-         30,   0,  30,
-         30, 150,  30,
+          // left column back
+            0,   0,  30,
+           30,   0,  30,
+            0, 150,  30,
+            0, 150,  30,
+           30,   0,  30,
+           30, 150,  30,
 
-        // top rung back
-         30,   0,  30,
-        100,   0,  30,
-         30,  30,  30,
-         30,  30,  30,
-        100,   0,  30,
-        100,  30,  30,
+          // top rung back
+           30,   0,  30,
+          100,   0,  30,
+           30,  30,  30,
+           30,  30,  30,
+          100,   0,  30,
+          100,  30,  30,
 
-        // middle rung back
-         30,  60,  30,
-         67,  60,  30,
-         30,  90,  30,
-         30,  90,  30,
-         67,  60,  30,
-         67,  90,  30,
+          // middle rung back
+           30,  60,  30,
+           67,  60,  30,
+           30,  90,  30,
+           30,  90,  30,
+           67,  60,  30,
+           67,  90,  30,
 
-        // top
+          // top
+            0,   0,   0,
+          100,   0,   0,
+          100,   0,  30,
+            0,   0,   0,
+          100,   0,  30,
+            0,   0,  30,
+
+          // top rung front
+          100,   0,   0,
+          100,  30,   0,
+          100,  30,  30,
+          100,   0,   0,
+          100,  30,  30,
+          100,   0,  30,
+
+          // under top rung
+          30,   30,   0,
+          30,   30,  30,
+          100,  30,  30,
+          30,   30,   0,
+          100,  30,  30,
+          100,  30,   0,
+
+          // between top rung and middle
+          30,   30,   0,
+          30,   60,  30,
+          30,   30,  30,
+          30,   30,   0,
+          30,   60,   0,
+          30,   60,  30,
+
+          // top of middle rung
+          30,   60,   0,
+          67,   60,  30,
+          30,   60,  30,
+          30,   60,   0,
+          67,   60,   0,
+          67,   60,  30,
+
+          // front of middle rung
+          67,   60,   0,
+          67,   90,  30,
+          67,   60,  30,
+          67,   60,   0,
+          67,   90,   0,
+          67,   90,  30,
+
+          // bottom of middle rung.
+          30,   90,   0,
+          30,   90,  30,
+          67,   90,  30,
+          30,   90,   0,
+          67,   90,  30,
+          67,   90,   0,
+
+          // front of bottom
+          30,   90,   0,
+          30,  150,  30,
+          30,   90,  30,
+          30,   90,   0,
+          30,  150,   0,
+          30,  150,  30,
+
+          // bottom
+          0,   150,   0,
+          0,   150,  30,
+          30,  150,  30,
+          0,   150,   0,
+          30,  150,  30,
+          30,  150,   0,
+
+          // left side
           0,   0,   0,
-        100,   0,   0,
-        100,   0,  30,
-          0,   0,   0,
-        100,   0,  30,
           0,   0,  30,
-
-        // top rung front
-        100,   0,   0,
-        100,  30,   0,
-        100,  30,  30,
-        100,   0,   0,
-        100,  30,  30,
-        100,   0,  30,
-
-        // under top rung
-        30,   30,   0,
-        30,   30,  30,
-        100,  30,  30,
-        30,   30,   0,
-        100,  30,  30,
-        100,  30,   0,
-
-        // between top rung and middle
-        30,   30,   0,
-        30,   60,  30,
-        30,   30,  30,
-        30,   30,   0,
-        30,   60,   0,
-        30,   60,  30,
-
-        // top of middle rung
-        30,   60,   0,
-        67,   60,  30,
-        30,   60,  30,
-        30,   60,   0,
-        67,   60,   0,
-        67,   60,  30,
-
-        // front of middle rung
-        67,   60,   0,
-        67,   90,  30,
-        67,   60,  30,
-        67,   60,   0,
-        67,   90,   0,
-        67,   90,  30,
-
-        // bottom of middle rung.
-        30,   90,   0,
-        30,   90,  30,
-        67,   90,  30,
-        30,   90,   0,
-        67,   90,  30,
-        67,   90,   0,
-
-        // front of bottom
-        30,   90,   0,
-        30,  150,  30,
-        30,   90,  30,
-        30,   90,   0,
-        30,  150,   0,
-        30,  150,  30,
-
-        // bottom
-        0,   150,   0,
-        0,   150,  30,
-        30,  150,  30,
-        0,   150,   0,
-        30,  150,  30,
-        30,  150,   0,
-
-        // left side
-        0,   0,   0,
-        0,   0,  30,
-        0, 150,  30,
-        0,   0,   0,
-        0, 150,  30,
-        0, 150,   0]),
+          0, 150,  30,
+          0,   0,   0,
+          0, 150,  30,
+          0, 150,   0]),
       gl.STATIC_DRAW
     );
   };
