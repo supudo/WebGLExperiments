@@ -191,12 +191,6 @@ function WebGLObjLoader(gl) {
             unpacked.hashIndices[lineElements[j]] = unpacked.index;
             unpacked.indices.push(unpacked.index);
             unpacked.index += 1;
-
-            //var dOutput = '[' + j + '] = (' + singleFace + ')\n';
-            //dOutput += 'VER = ' + v_idx + ' = ' + (+geometricVertices[v_idx + 0]) + ' ' + (+geometricVertices[v_idx + 1]) + ' ' + (+geometricVertices[v_idx + 2]) + '\n';
-            //dOutput += 'TEX = ' + t_idx + ' = ' + (+textureCoordinates[t_idx + 0]) + ' ' + (+textureCoordinates[t_idx + 1]) + '\n';
-            //dOutput += 'NOR = ' + n_idx + ' = ' + (+vertexNormals[n_idx + 0]) + ' ' + (+vertexNormals[n_idx + 1]) + '\n';
-            //showMessage('<pre><code>' + dOutput + '</code></pre>');
           }
           if (j === 3 && quad)
             unpacked.indices.push(unpacked.hashIndices[lineElements[0]]);

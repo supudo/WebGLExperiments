@@ -29,7 +29,7 @@ function OBJLoader(gl, gameCanvas) {
     meshes = {};
     models = {};
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'EnemySpaceship.obj', '/objects');
+    objLoader.parseObject('../../objects', 'cube.obj', '/objects');
     objLoader.initMeshBuffers();
     objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
   };

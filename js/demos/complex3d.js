@@ -7,7 +7,7 @@ function Complex3D(gl, gameCanvas) {
   var animFrames;
   var matrixLocation, positionLocation, colorLocation;
   var shaderProgram, shaderVertex, shaderFragment;
-  var translation = [200, 200, 0];
+  var translation = [150, 250, 0];
   var rotation = [0, 0, 0];
   var scale = [1, 1, 1];
 
@@ -100,9 +100,8 @@ function Complex3D(gl, gameCanvas) {
     var projectionMatrix = this.make2DProjection(gameCanvas.width, gameCanvas.height, 400);
     var translationMatrix = this.makeTranslation(translation[0], translation[1], translation[2]);
     var rotationXMatrix = this.makeXRotation(rotation[0]);
-    var rotationYMatrix = this.makeYRotation(rotation[1]);
-    var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 10);
-    //var rotationZMatrix = this.makeZRotation(rotation[2]);
+    var rotationYMatrix = this.makeYRotation(rotation[1] + animFrames / 40);
+    var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 40);
     var scaleMatrix = this.makeScale(scale[0], scale[1], scale[2]);
 
     var matrix = this.matrixMultiply(scaleMatrix, rotationZMatrix);
