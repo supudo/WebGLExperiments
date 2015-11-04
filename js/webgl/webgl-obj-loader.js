@@ -144,6 +144,7 @@ function WebGLObjLoader(gl) {
   this.processOBJ = function() {
     var objLines = objString.split('\n');
     var singleModel = null;
+    var currentMaterial = null;
     for (var i=0; i<objLines.length; i++) {
       var singleLine = objLines[i];
       var lineElements = singleLine.split(regex_whiteSpace);
@@ -157,17 +158,17 @@ function WebGLObjLoader(gl) {
         if (regex_objTitle.test(singleLine)) {
           singleModel.id = lineElements.join(' ');
 
-        singleModel.geometricVertices = [];
-        singleModel.textureCoordinates = [];
-        singleModel.vertexNormals = [];
-        singleModel.indices = [];
-        //singleModel.geometricVertices = unpacked.verts;
-        //singleModel.textureCoordinates = unpacked.textures;
-        //singleModel.vertexNormals = unpacked.norms;
-        //singleModel.indices = unpacked.indices;
-        //singleModel.materials = objMaterials;
+          //singleModel.geometricVertices = [];
+          //singleModel.textureCoordinates = [];
+          //singleModel.vertexNormals = [];
+          //singleModel.indices = [];
+          singleModel.geometricVertices = unpacked.verts;
+          singleModel.textureCoordinates = unpacked.textures;
+          singleModel.vertexNormals = unpacked.norms;
+          //singleModel.indices = unpacked.indices;
+          singleModel.materials = [];
 
-        this.objModels.push(singleModel);
+          this.objModels.push(singleModel);
         }
       }
 
@@ -181,6 +182,11 @@ function WebGLObjLoader(gl) {
         vertexNormals.push.apply(vertexNormals, lineElements);
       else if (regex_spaceVertices.test(singleLine))
         spaceVertices.push.apply(spaceVertices, lineElements);
+      else if (regex_useMaterial.test(singleLine)) {
+        currentMaterial = {};
+        currentMaterial.materialName = lineElements.join(' ');
+        singleModel.materials.push(currentMaterial);
+      }
       else if (regex_polygonalFaces.test(singleLine)) {
         /*
          * Quad triangulation for faces

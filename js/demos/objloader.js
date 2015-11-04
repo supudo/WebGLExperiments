@@ -29,7 +29,7 @@ function OBJLoader(gl, gameCanvas) {
     meshes = {};
     models = {};
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'multi.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet.obj', '/objects');
     printJSONData(objLoader.objScene);
     //objLoader.initMeshBuffers();
     //if (objLoader.objMesh.hasTextureImages)
