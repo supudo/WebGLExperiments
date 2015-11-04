@@ -71,23 +71,19 @@ function Complex3D(gl, gameCanvas) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-    this.setGeometry3D2();
+    //this.setGeometry3D2();
     //this.setGeometry3D();
     //this.setGeometryComplex();
     //this.setGeometryComplex2();
     //this.setGeometryCube();
-    this.setGeometryX();
+    //this.setGeometryX();
+    this.setGeometryTorus();
 
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-    //this.setColors2();
-    //this.setColors();
-    //this.setColorsComplex();
-    //this.setColorsComplex2();
-    //this.setColorsCube();
-    this.setColorsX();
+    this.setColors();
   };
 
   this.drawScene = function() {
@@ -116,7 +112,23 @@ function Complex3D(gl, gameCanvas) {
     //gl.drawArrays(gl.TRIANGLES, 0, 16 * 6);
     //gl.drawArrays(gl.TRIANGLES, 0, 20);
     //gl.drawArrays(gl.TRIANGLES, 0, 8);
-    gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
+    //gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
+
+    var t = 0;
+    t = 576;
+    //t *= 3;
+    gl.drawArrays(gl.TRIANGLES, 0, t);
+
+    //576 / 6 = 96
+  };
+
+  this.setGeometryTorus = function() {
+    eval(getSourceSynch('../../objects/torus.vertices'));
+    var vv = [];
+    for (var i=0; i<torusVertices.length; i++) {
+      vv.push(torusVertices[i] * 60);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
   };
 
   this.setGeometryX = function() {
@@ -166,14 +178,6 @@ function Complex3D(gl, gameCanvas) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
   };
 
-  this.setColorsX = function() {
-    var colors = [];
-    for (var i=0; i<36; i++) {
-      colors.push(200 + i,  70 + i, 120 + i);
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
-  };
-
   this.setGeometryCube = function() {
     var v = [
       1.000000, -1.000000, -1.000000,
@@ -190,14 +194,6 @@ function Complex3D(gl, gameCanvas) {
       vv.push(v[i] * 100);
     }
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
-  };
-
-  this.setColorsCube = function() {
-    var colors = [];
-    for (var i=0; i<8; i++) {
-      colors.push(200,  70, 120);
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
   };
 
   this.setGeometryComplex2 = function() {
@@ -230,14 +226,6 @@ function Complex3D(gl, gameCanvas) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
   };
 
-  this.setColorsComplex2 = function() {
-    var colors = [];
-    for (var i=0; i<20; i++) {
-      colors.push(200,  70, 120);
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
-  };
-
   this.setGeometryComplex = function() {
     var v = [
       1.072691, 0.144023, -0.134595,
@@ -257,22 +245,6 @@ function Complex3D(gl, gameCanvas) {
     showMessage(vv);
   };
 
-  this.setColorsComplex = function() {
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Uint8Array([
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120]),
-      gl.STATIC_DRAW
-    );
-  };
-
   this.setGeometry3D2 = function() {
    gl.bufferData(
       gl.ARRAY_BUFFER,
@@ -283,20 +255,6 @@ function Complex3D(gl, gameCanvas) {
         0, 150,  0,
         30, 150,  0,
         30,   0,  0]),
-      gl.STATIC_DRAW
-    );
-  };
-
-  this.setColors2 = function() {
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Uint8Array([
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120]),
       gl.STATIC_DRAW
     );
   };
@@ -438,138 +396,12 @@ function Complex3D(gl, gameCanvas) {
   };
 
   this.setColors = function() {
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Uint8Array([
-          // left column front
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-
-          // top rung front
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-
-          // middle rung front
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-        200,  70, 120,
-
-          // left column back
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-
-          // top rung back
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-
-          // middle rung back
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-        80, 70, 200,
-
-          // top
-        70, 200, 210,
-        70, 200, 210,
-        70, 200, 210,
-        70, 200, 210,
-        70, 200, 210,
-        70, 200, 210,
-
-          // top rung front
-        200, 200, 70,
-        200, 200, 70,
-        200, 200, 70,
-        200, 200, 70,
-        200, 200, 70,
-        200, 200, 70,
-
-          // under top rung
-        210, 100, 70,
-        210, 100, 70,
-        210, 100, 70,
-        210, 100, 70,
-        210, 100, 70,
-        210, 100, 70,
-
-          // between top rung and middle
-        210, 160, 70,
-        210, 160, 70,
-        210, 160, 70,
-        210, 160, 70,
-        210, 160, 70,
-        210, 160, 70,
-
-          // top of middle rung
-        70, 180, 210,
-        70, 180, 210,
-        70, 180, 210,
-        70, 180, 210,
-        70, 180, 210,
-        70, 180, 210,
-
-          // front of middle rung
-        100, 70, 210,
-        100, 70, 210,
-        100, 70, 210,
-        100, 70, 210,
-        100, 70, 210,
-        100, 70, 210,
-
-          // bottom of middle rung.
-        76, 210, 100,
-        76, 210, 100,
-        76, 210, 100,
-        76, 210, 100,
-        76, 210, 100,
-        76, 210, 100,
-
-          // front of bottom
-        140, 210, 80,
-        140, 210, 80,
-        140, 210, 80,
-        140, 210, 80,
-        140, 210, 80,
-        140, 210, 80,
-
-          // bottom
-        90, 130, 110,
-        90, 130, 110,
-        90, 130, 110,
-        90, 130, 110,
-        90, 130, 110,
-        90, 130, 110,
-
-          // left side
-        160, 160, 220,
-        160, 160, 220,
-        160, 160, 220,
-        160, 160, 220,
-        160, 160, 220,
-        160, 160, 220]),
-      gl.STATIC_DRAW
-    );
+    var colors = [];
+    for (var i=0; i<100000; i++) {
+      colors.push(200 + i,  70 + i, 120 + i);
+      //colors.push(200,  70, 120);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
   };
 
   this.make2DProjection = function(width, height, depth) {

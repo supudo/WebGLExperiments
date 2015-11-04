@@ -31,18 +31,24 @@ function OBJLoader(gl, gameCanvas) {
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'cube.obj', '/objects');
     objLoader.initMeshBuffers();
-    objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
+    if (objLoader.objMesh.hasTextureImages)
+      objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
+    else
+      this.imageTexturesLoaded();
   };
    
   this.changeSettings = function() {
   };
 
   this.run = function(frames) {
-    if (everythingInitalized)
+    if (everythingInitalized) {
+      showMessageInfo('[OBJLoader] - run');
       this.drawScene();
+    }
   };
 
   this.release = function() {
+    showMessageInfo('[OBJLoader] - release');
     try {
       objLoader.release();
       gl.deleteShader(shaderFragment);
@@ -108,13 +114,15 @@ function OBJLoader(gl, gameCanvas) {
     lightSpecularColor = gl.getUniformLocation(shaderProgram, "uLightSpecularColor");
     lightDiffuseColor = gl.getUniformLocation(shaderProgram, "uLightDiffuseColor");
 
+    //gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+
     gl.viewportWidth = gameCanvas.width;
     gl.viewportHeight = gameCanvas.height;
   };
 
   this.drawScene = function() {
     showMessageInfo('[OBJLoader] - DrawScene');
-    gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.viewport(0, 0, gameCanvas.width, gameCanvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -152,7 +160,8 @@ function OBJLoader(gl, gameCanvas) {
     gl.vertexAttribPointer(vertexNormalAttribute, model.bufferNormal.itemSize, gl.FLOAT, false, 0, 0);
 
     if (!model.textureCoordinates.length) {
-      var t = models['spaceship'].materials[0].textures.density[0].loadedImage;
+      var t = models['spaceship'].materials.textures.density[0].loadedImage;
+      printData(t);
 
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, model);
