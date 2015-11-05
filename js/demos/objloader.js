@@ -8,20 +8,9 @@ function OBJLoader(gl, gameCanvas) {
   var translation = [150, 250, 0];
   var rotation = [0, 0, 0];
   var scale = [1, 1, 1];
-
-  var objLoader, meshes, models, everythingInitalized;
-
-  var vertexPositionAttribute, vertexNormalAttribute, textureCoordAttribute;
-  var pMatrixUniform, mvMatrixUniform, nMatrixUniform;
-  var samplerUniform, modelColor, materialShininessUniform;
-  var useTexturesUniform, ambientColorUniform;
-  var hasTexure, hasFlashlight, lightLocation;
-  var lightVector, lightSpecularColor, lightDiffuseColor;
-
+  var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
-
-  var pMatrix = mat4.create();
-  var mvMatrix = mat4.create();
+  var positionLocation, colorLocation, matrixLocation;
 
   //
   // Public =================================================
@@ -32,8 +21,6 @@ function OBJLoader(gl, gameCanvas) {
 
     animFrames = 0;
     everythingInitalized = false;
-    meshes = {};
-    models = {};
 
     this.showLoading();
     objLoader = new WebGLObjLoader(gl);
@@ -72,8 +59,6 @@ function OBJLoader(gl, gameCanvas) {
   //
 
   this.imageTexturesLoaded = function() {
-    meshes['spaceship'] = objLoader.objMesh;
-
     showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
     printJSONData(objLoader.objScene);
 
