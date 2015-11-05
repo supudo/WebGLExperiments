@@ -31,13 +31,12 @@ function OBJLoader(gl, gameCanvas) {
     this.showLoading();
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'planet.obj', '/objects');
-    printJSONData(objLoader.objScene);
-    this.hideLoading();
     //objLoader.initMeshBuffers();
-    //if (objLoader.objMesh.hasTextureImages)
-    //  objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
-    //else
-    //  this.imageTexturesLoaded();
+    this.hideLoading();
+    if (objLoader.objScene.objHasTextureImages)
+      objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
+    else
+      this.imageTexturesLoaded();
   };
    
   this.changeSettings = function() {
