@@ -28,9 +28,12 @@ function OBJLoader(gl, gameCanvas) {
     everythingInitalized = false;
     meshes = {};
     models = {};
+    this.showLoading();
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'planet.obj', '/objects');
     printJSONData(objLoader.objScene);
+    setTimeout(this.hideLoading, 2000);
+    //this.hideLoading();
     //objLoader.initMeshBuffers();
     //if (objLoader.objMesh.hasTextureImages)
     //  objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
@@ -205,5 +208,28 @@ function OBJLoader(gl, gameCanvas) {
 
   this.lightIntesity = function(i, r, g, b) {
     return [i * r, i * g, i * b];
+  };
+
+  this.showLoading = function() {
+    showMessage('Loading....');
+    var css_style = '';
+    css_style += 'display: visible; background-color: #ababab; position:absolute;';
+    css_style += 'top: 0%; left: 0%; width: 100%; height: 100%;';
+    css_style += 'z-index: 1001; -moz-opacity: 0.8; opacity: .90; filter: alpha(opacity=80);';
+    var element_style = 'position: absolute; top: 40%; left: 40%;';
+    var text_style = 'color: #ffffff; font-size: 26px; font-weight: bold;';
+    var loading_html = '';
+    loading_html += "<div style='" + element_style + "'><img src='/images/loadingspinner.gif' /><br /><br />";
+    loading_html += "<span style='" + text_style + "'>Loading OBJ ...</span></div>";
+    $('#main_view').append(
+      $('<div/>')
+        .attr('id', 'objloaderloading')
+        .attr('style', css_style)
+        .html(loading_html)
+    );
+  };
+
+  this.hideLoading = function() {
+    $('#objloaderloading').hide();
   };
 };

@@ -93,8 +93,8 @@ function WebGLObjLoader(gl) {
     unpacked.index = 0;
 
     objHasTextureImages = false;
-    objString = this.loadFile(objFilePath, objFilename);
 
+    objString = this.loadFile(objFilePath, objFilename);
     this.processOBJ();
   };
 
@@ -185,9 +185,38 @@ function WebGLObjLoader(gl) {
       else if (regex_useMaterial.test(singleLine)) {
         currentMaterial = {};
         currentMaterial.materialName = lineElements.join(' ');
+        currentMaterial.verts = [];
+        currentMaterial.textures = [];
+        currentMaterial.norms = [];
         singleModel.materials.push(currentMaterial);
       }
       else if (regex_polygonalFaces.test(singleLine)) {
+        var singleFaceElements = singleLine.split(regex_whiteSpace);
+        singleFaceElements.shift();
+        for (var j=0; j<singleFaceElements.length; j++) {
+          //var singleFace = singleFaceElements[j].split('/');
+          var face = singleFaceElements[j].split('/');
+          console.log(face);
+
+          //showMessage(lineElements[j]);
+          /*
+          var v_idx = ((singleFace[0] - 1) * 3);
+          currentMaterial.verts.push(+geometricVertices[v_idx + 0]);
+          currentMaterial.verts.push(+geometricVertices[v_idx + 1]);
+          currentMaterial.verts.push(+geometricVertices[v_idx + 2]);
+
+          if (textureCoordinates.length) {
+            var t_idx = ((singleFace[1] - 1) * 2);
+            currentMaterial.textures.push(+textureCoordinates[t_idx + 0]);
+            currentMaterial.textures.push(+textureCoordinates[t_idx + 1]);
+          }
+
+          var n_idx = ((singleFace[2] - 1) * 3);
+          currentMaterial.norms.push(+vertexNormals[n_idx + 0]);
+          currentMaterial.norms.push(+vertexNormals[n_idx + 1]);
+          currentMaterial.norms.push(+vertexNormals[n_idx + 2]);
+          */
+        }
         /*
          * Quad triangulation for faces
          * 
@@ -199,7 +228,7 @@ function WebGLObjLoader(gl) {
          * 'f v2/t2/vn2 v3/t3/vn3 v0/t0/vn0'
          *
          */
-        // quads ...
+        /*
         var quad = false;
         for (var j=0; j<lineElements.length; j++) {
           if (j === 3 && !quad) {
@@ -235,6 +264,7 @@ function WebGLObjLoader(gl) {
           if (j === 3 && quad)
             unpacked.indices.push(unpacked.hashIndices[lineElements[0]]);
         }
+        */
       }
     }
     this.objScene.objHasTextureImages = objHasTextureImages;
