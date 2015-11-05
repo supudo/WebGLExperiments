@@ -32,8 +32,7 @@ function OBJLoader(gl, gameCanvas) {
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'planet.obj', '/objects');
     printJSONData(objLoader.objScene);
-    setTimeout(this.hideLoading, 2000);
-    //this.hideLoading();
+    this.hideLoading();
     //objLoader.initMeshBuffers();
     //if (objLoader.objMesh.hasTextureImages)
     //  objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));

@@ -28,7 +28,6 @@ function WebGLObjLoader(gl) {
   var vertexNormals = [];
   var spaceVertices = [];
   var polygonalFaces = [];
-  var unpacked = {};
 
   var regex_comment = /^#\s/;
   var regex_objTitle = /^o\s/;
@@ -85,13 +84,6 @@ function WebGLObjLoader(gl) {
     objFilename = fileName;
     objImagePath = imagePath;
 
-    unpacked.verts = [];
-    unpacked.norms = [];
-    unpacked.textures = [];
-    unpacked.hashIndices = {};
-    unpacked.indices = [];
-    unpacked.index = 0;
-
     objHasTextureImages = false;
 
     objString = this.loadFile(objFilePath, objFilename);
@@ -99,10 +91,10 @@ function WebGLObjLoader(gl) {
   };
 
   WebGLObjLoader.prototype.initMeshBuffers = function() {
-    this.objMesh.bufferNormal = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.vertexNormals, 3);
-    this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
-    this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
-    this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
+    //this.objMesh.bufferNormal = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.vertexNormals, 3);
+    //this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
+    //this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
+    //this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
   };
 
   WebGLObjLoader.prototype.preloadTextureImages = function(callback) {
@@ -157,17 +149,7 @@ function WebGLObjLoader(gl) {
         singleModel = {};
         if (regex_objTitle.test(singleLine)) {
           singleModel.id = lineElements.join(' ');
-
-          //singleModel.geometricVertices = [];
-          //singleModel.textureCoordinates = [];
-          //singleModel.vertexNormals = [];
-          //singleModel.indices = [];
-          singleModel.geometricVertices = unpacked.verts;
-          singleModel.textureCoordinates = unpacked.textures;
-          singleModel.vertexNormals = unpacked.norms;
-          //singleModel.indices = unpacked.indices;
-          singleModel.materials = [];
-
+          singleModel.faces = [];
           this.objModels.push(singleModel);
         }
       }
@@ -188,34 +170,18 @@ function WebGLObjLoader(gl) {
         currentMaterial.verts = [];
         currentMaterial.textures = [];
         currentMaterial.norms = [];
-        singleModel.materials.push(currentMaterial);
+        singleModel.faces.push(currentMaterial);
       }
       else if (regex_polygonalFaces.test(singleLine)) {
         var singleFaceElements = singleLine.split(regex_whiteSpace);
         singleFaceElements.shift();
         for (var j=0; j<singleFaceElements.length; j++) {
-          //var singleFace = singleFaceElements[j].split('/');
           var face = singleFaceElements[j].split('/');
-          console.log(face);
 
-          //showMessage(lineElements[j]);
-          /*
-          var v_idx = ((singleFace[0] - 1) * 3);
-          currentMaterial.verts.push(+geometricVertices[v_idx + 0]);
-          currentMaterial.verts.push(+geometricVertices[v_idx + 1]);
-          currentMaterial.verts.push(+geometricVertices[v_idx + 2]);
-
-          if (textureCoordinates.length) {
-            var t_idx = ((singleFace[1] - 1) * 2);
-            currentMaterial.textures.push(+textureCoordinates[t_idx + 0]);
-            currentMaterial.textures.push(+textureCoordinates[t_idx + 1]);
-          }
-
-          var n_idx = ((singleFace[2] - 1) * 3);
-          currentMaterial.norms.push(+vertexNormals[n_idx + 0]);
-          currentMaterial.norms.push(+vertexNormals[n_idx + 1]);
-          currentMaterial.norms.push(+vertexNormals[n_idx + 2]);
-          */
+          currentMaterial.verts.push(geometricVertices[face[0]]);
+          if (textureCoordinates.length && face[1] != '')
+            currentMaterial.textures.push(textureCoordinates[face[1]]);
+          currentMaterial.norms.push(vertexNormals[face[2]]);
         }
         /*
          * Quad triangulation for faces
