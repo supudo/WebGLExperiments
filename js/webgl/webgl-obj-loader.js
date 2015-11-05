@@ -135,6 +135,9 @@ function WebGLObjLoader(gl) {
     var objLines = objString.split('\n');
     var singleModel = null;
     var currentMaterial = null;
+    var geometricVerticesCountTotal = 0;
+    var textureCoordinatesCountTotal = 0;
+    var normalVerticesCountTotal = 0;
     for (var i=0; i<objLines.length; i++) {
       var singleLine = objLines[i];
       var lineElements = singleLine.split(regex_whiteSpace);
@@ -148,6 +151,9 @@ function WebGLObjLoader(gl) {
         if (regex_objTitle.test(singleLine)) {
           singleModel.id = lineElements.join(' ');
           singleModel.faces = [];
+          singleModel.geometricVerticesCount = 0;
+          singleModel.textureCoordinatesCount = 0;
+          singleModel.normalVerticesCount = 0;
           objModels.push(singleModel);
         }
       }
@@ -165,8 +171,12 @@ function WebGLObjLoader(gl) {
       else if (regex_useMaterial.test(singleLine)) {
         currentMaterial = {};
         currentMaterial.materialID = lineElements.join(' ');
+        currentMaterial.geometricVerticesCount = 0;
+        currentMaterial.textureCoordinatesCount = 0;
+        currentMaterial.normalVerticesCount = 0;
         currentMaterial.verts = [];
         currentMaterial.textures = [];
+        currentMaterial.norms = [];
         currentMaterial.norms = [];
         singleModel.faces.push(currentMaterial);
       }
@@ -176,62 +186,37 @@ function WebGLObjLoader(gl) {
         for (var j=0; j<singleFaceElements.length; j++) {
           var face = singleFaceElements[j].split('/');
 
-          currentMaterial.verts.push(geometricVertices[face[0]]);
-          if (textureCoordinates.length && face[1] != '')
-            currentMaterial.textures.push(textureCoordinates[face[1]]);
-          currentMaterial.norms.push(vertexNormals[face[2]]);
-        }
-        /*
-         * Quad triangulation for faces
-         * 
-         * from quad
-         * 'f v0/t0/vn0 v1/t1/vn1 v2/t2/vn2 v3/t3/vn3/'
-         * 
-         * we get triangles
-         * 'f v0/t0/vn0 v1/t1/vn1 v2/t2/vn2'
-         * 'f v2/t2/vn2 v3/t3/vn3 v0/t0/vn0'
-         *
-         */
-        /*
-        var quad = false;
-        for (var j=0; j<lineElements.length; j++) {
-          if (j === 3 && !quad) {
-            j = 2;
-            quad = true;
+          var v_idx = (face[0] - 1) * 3;
+          currentMaterial.verts.push(geometricVertices[v_idx + 0]);
+          currentMaterial.verts.push(geometricVertices[v_idx + 1]);
+          currentMaterial.verts.push(geometricVertices[v_idx + 2]);
+          geometricVerticesCountTotal += 3;
+          singleModel.geometricVerticesCount += 3;
+          currentMaterial.geometricVerticesCount += 3;
+
+          if (textureCoordinates.length && face[1] != '') {
+            var t_idx = (face[1] - 1) * 2;
+            currentMaterial.textures.push(textureCoordinates[t_idx + 0]);
+            currentMaterial.textures.push(textureCoordinates[t_idx + 1]);
+            textureCoordinatesCountTotal += 2;
+            singleModel.textureCoordinatesCount += 2;
+            currentMaterial.textureCoordinatesCount += 2;
           }
 
-          if (lineElements[j] in unpacked.hashIndices)
-            unpacked.indices.push(unpacked.hashIndices[lineElements[j]]);
-          else {
-            var singleFace = lineElements[j].split('/');
-
-            var v_idx = ((singleFace[0] - 1) * 3);
-            unpacked.verts.push(+geometricVertices[v_idx + 0]);
-            unpacked.verts.push(+geometricVertices[v_idx + 1]);
-            unpacked.verts.push(+geometricVertices[v_idx + 2]);
-
-            if (textureCoordinates.length) {
-              var t_idx = ((singleFace[1] - 1) * 2);
-              unpacked.textures.push(+textureCoordinates[t_idx + 0]);
-              unpacked.textures.push(+textureCoordinates[t_idx + 1]);
-            }
-
-            var n_idx = ((singleFace[2] - 1) * 3);
-            unpacked.norms.push(+vertexNormals[n_idx + 0]);
-            unpacked.norms.push(+vertexNormals[n_idx + 1]);
-            unpacked.norms.push(+vertexNormals[n_idx + 2]);
-
-            unpacked.hashIndices[lineElements[j]] = unpacked.index;
-            unpacked.indices.push(unpacked.index);
-            unpacked.index += 1;
-          }
-          if (j === 3 && quad)
-            unpacked.indices.push(unpacked.hashIndices[lineElements[0]]);
+          var n_idx = (face[2] - 1) * 3;
+          currentMaterial.norms.push(vertexNormals[n_idx + 0]);
+          currentMaterial.norms.push(vertexNormals[n_idx + 1]);
+          currentMaterial.norms.push(vertexNormals[n_idx + 2]);
+          normalVerticesCountTotal += 3;
+          singleModel.normalVerticesCount += 3;
+          currentMaterial.normalVerticesCount += 3;
         }
-        */
       }
     }
     this.objScene.objHasTextureImages = objHasTextureImages;
+    this.objScene.objTotalCountGeometricVertices = geometricVerticesCountTotal;
+    this.objScene.objTotalCountTextureCoordinates = textureCoordinatesCountTotal;
+    this.objScene.objTotalCountNormalVertices = normalVerticesCountTotal;
     this.objScene.models = objModels;
     this.objScene.materials = objMaterials;
   };
