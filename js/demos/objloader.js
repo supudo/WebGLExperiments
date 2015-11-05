@@ -55,7 +55,7 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   //
-  // Private =================================================
+  // Drawing =================================================
   //
 
   this.imageTexturesLoaded = function() {
@@ -68,8 +68,8 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.initShaders = function() {
-    shaderFragment = compileShaderFromSource(gl, "../shaders/complex3d.fs", gl.FRAGMENT_SHADER);
-    shaderVertex = compileShaderFromSource(gl, "../shaders/complex3d.vs", gl.VERTEX_SHADER);
+    shaderFragment = compileShaderFromSource(gl, "../shaders/objloader.fs", gl.FRAGMENT_SHADER);
+    shaderVertex = compileShaderFromSource(gl, "../shaders/objloader.vs", gl.VERTEX_SHADER);
 
     shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, shaderVertex);
@@ -90,10 +90,8 @@ function OBJLoader(gl, gameCanvas) {
 
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
     this.setGeometry();
 
     var buffer = gl.createBuffer();
@@ -125,50 +123,35 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
-    gl.drawArrays(gl.TRIANGLES, 0, (90) / 3);
+    var vn = objLoader.objScene.objTotalCountGeometricVertices;
+    gl.drawArrays(gl.TRIANGLES, 0, vn / 3);
   };
 
   this.setGeometry = function() {
-    var v = objLoader.objScene.models[0].faces[0].verts;
-    for (var i=0; i<v.length; i++) {
-      v[i] = v[i] * 100;
+    var vv = [];
+    for (var i=0; i<objLoader.objScene.models.length; i++) {
+      var model = objLoader.objScene.models[i];
+      for (var j=0; j<model.faces.length; j++) {
+        for (var v=0; v<model.faces[j].verts.length; v++) {
+          var vertex = model.faces[j].verts[v] * 60;
+          vv.push(vertex);
+        }
+      }
     }
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
   };
 
   this.setColors = function() {
     var colors = [];
-    for (var i=0; i<90; i++) {
+    for (var i=0; i<100000; i++) {
       colors.push(200 + i,  70 + i, 120 + i);
-      //colors.push(200,  70, 120);
     }
     gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
   };
 
-  this.setGeometries = function() {
-    for (var i=0; i<objLoader.objScene.models.length; i++) {
-      var model = objLoader.objScene.models[i];
-      for (var j=0; j<model.faces.length; j++) {
-        var face = model.faces[j];
-
-        var v = face.verts;
-        for (var f=0; f<v.length; f++) {
-          v[f] = v[f] * 100;
-        }
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
-      }
-    }
-  };
-
-  this.buildBuffer = function(type, data, itemSize) {
-    var buffer = gl.createBuffer();
-    var arrayView = type === gl.ARRAY_BUFFER ? Float32Array : Uint16Array;
-    gl.bindBuffer(type, buffer);
-    gl.bufferData(type, new arrayView(data), gl.STATIC_DRAW);
-    buffer.itemSize = itemSize;
-    buffer.numItems = data.length / itemSize;
-    return buffer;
-  };
+  //
+  // Math =================================================
+  //
 
   this.make2DProjection = function(width, height, depth) {
     return [
@@ -290,6 +273,10 @@ function OBJLoader(gl, gameCanvas) {
       a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33
     ];
   };
+
+  //
+  // UI =================================================
+  //
 
   this.showLoading = function() {
     showMessage('Loading....');
