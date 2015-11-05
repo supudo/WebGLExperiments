@@ -80,13 +80,14 @@ function printData(obj) {
 }
 
 function printJSONData(obj) {
+  $("#game_messages").empty();
   var d = new Date();
   var json_id = d.getTime();
   if (!logReversed)
-    $("#game_messages").append($('<div/>').attr('id', json_id).css('background-color', '#ffffff').html(''));
+    $("#game_messages").append($('<div/>').attr('id', 'jv_' + json_id).css('background-color', '#ffffff').html(''));
   else
-    $("#game_messages").prepend($('<div/>').attr('id', json_id).css('background-color', '#ffffff').html(''));
-  $('#' + json_id).JSONView(obj, { collapsed: true, nl2br: true, recursive_collapser: false });
+    $("#game_messages").prepend($('<div/>').attr('id', 'jv_' + json_id).css('background-color', '#ffffff').html(''));
+  $('#jv_' + json_id).JSONView(obj, { collapsed: true, nl2br: true, recursive_collapser: false });
 }
 
 function getRandom(max) {

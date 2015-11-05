@@ -37,7 +37,7 @@ module WebGLDemos {
     public static STARS_NUM: number = 50;
     public static STARS_FRAME_LIMIT: number = 16;
     public static STARS_MOVEMENT: number = 2;
-    public static STARS_SIZE: number = (STARS_NUM > 1 ? 50 : 100);
+    public static STARS_SIZE: number = (DemoVariables.STARS_NUM > 1 ? 50 : 100);
     public static STARS_VELOCITY: number = 10;
     public static STARS_ROTATION_SPEED: number = 10;
     public static STARS_DO_ROTATION: boolean = true;

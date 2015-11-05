@@ -69,8 +69,9 @@ function OBJLoader(gl, gameCanvas) {
 
   this.imageTexturesLoaded = function() {
     meshes['spaceship'] = objLoader.objMesh;
+    printJSONData(objLoader.objScene);
 
-    showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
+    //showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
 
     this.initShaders();
     this.initBuffers();

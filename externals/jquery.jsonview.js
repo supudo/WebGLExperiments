@@ -35,7 +35,12 @@ Licensed under the MIT License.
         level = 0;
       }
       valueType = Object.prototype.toString.call(value).match(/\s(.+)]/)[1].toLowerCase();
-      return this["" + valueType + "ToHTML"].call(this, value, level);
+      try {
+        return this["" + valueType + "ToHTML"].call(this, value, level);
+      }
+      catch (e) {
+        console.log(e + ' - ' + valueType);
+      }
     };
 
     JSONFormatter.prototype.nullToHTML = function(value) {
