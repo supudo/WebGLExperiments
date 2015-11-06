@@ -25,7 +25,7 @@ function OBJLoader(gl, gameCanvas) {
 
     this.showLoading();
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
@@ -37,8 +37,9 @@ function OBJLoader(gl, gameCanvas) {
 
   this.run = function(frames) {
     animFrames = frames;
-    if (everythingInitalized)
+    if (everythingInitalized) {
       this.drawScene();
+    }
   };
 
   this.release = function() {
@@ -87,7 +88,7 @@ function OBJLoader(gl, gameCanvas) {
     useTextureLocation = gl.getUniformLocation(shaderProgram, "u_useTexture");
     texCoordLocation = gl.getAttribLocation(shaderProgram, "a_texCoord");
 
-    gl.enable(gl.CULL_FACE);
+    //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
   };
 
@@ -96,24 +97,22 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var modelCounter = 0;
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
       for (var j=0; j<model.faces.length; j++) {
         var face = model.faces[j];
-        this.drawModel(face, modelCounter);
-        modelCounter += 1;
+        this.drawModel(face);
       }
     }
   };
 
-  this.drawModel = function(model, modelCounter) {
+  this.drawModel = function(model) {
     // vertices
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     var vv = [];
     for (var i=0; i<model.verts.length; i++) {
-      var v = model.verts[i] * 60;
+      var v = model.verts[i] * 100;
       vv.push(v);
     }
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
@@ -121,28 +120,36 @@ function OBJLoader(gl, gameCanvas) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
 
     // texture & color
-    /*
     if (model.textures && model.textures.length > 0) {
-      var texCoordBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(texCoordLocation);
-      gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-      var texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
+      gl.uniform1i(useTextureLocation, true);
       var texImages = this.getMaterialTextureImage(model.materialID);
-      printData(texImages.texImages);
-      if (texImages.texImages && texImages.texImages.density)
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texImages.texImages.density);
+      for (var i=0; i<texImages.density.length; i++) {
+        var img = texImages.density[i];
+
+        var texCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(texCoordLocation);
+        gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      }
     }
     else {
+      gl.uniform1i(useTextureLocation, false);
       var buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       var colors = [];
@@ -151,10 +158,10 @@ function OBJLoader(gl, gameCanvas) {
       }
       gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
       gl.enableVertexAttribArray(colorLocation);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
     }
-    */
 
+    /*
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     var colors = [];
@@ -163,12 +170,13 @@ function OBJLoader(gl, gameCanvas) {
     }
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
     gl.enableVertexAttribArray(colorLocation);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
+    */
 
     rotation = [this.degToRad(40), this.degToRad(25), this.degToRad(325)];
 
     var projectionMatrix = this.make2DProjection(gameCanvas.width, gameCanvas.height, 400);
-    var translationMatrix = this.makeTranslation(translation[0] + (modelCounter * 10), translation[1], translation[2]);
+    var translationMatrix = this.makeTranslation(translation[0], translation[1], translation[2]);
     var rotationXMatrix = this.makeXRotation(rotation[0]);
     var rotationYMatrix = this.makeYRotation(rotation[1] + animFrames / 40);
     var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 40);
@@ -187,12 +195,18 @@ function OBJLoader(gl, gameCanvas) {
 
   this.getMaterialTextureImage = function(materialID) {
     var textureImages = {};
+    var density = [];
     for (var i=0; i<objLoader.objScene.materials.length; i++) {
       var mat = objLoader.objScene.materials[i];
       if (mat.id == materialID) {
-        textureImages.density = mat.textures.density[0].loadedImage;
+        if (mat.textures.density) {
+          for (var j=0; j<mat.textures.density.length; j++) {
+            density.push(mat.textures.density[0].loadedImage);
+          }
+        }
       }
     }
+    textureImages.density = density;
     return textureImages;
   };
 

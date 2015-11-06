@@ -1,5 +1,5 @@
-# Blender MTL File: 'planet.blend'
-# Material Count: 7
+# Blender MTL File: 'planet2.blend'
+# Material Count: 8
 
 newmtl MaterialDeimios
 Ns 96.078431
@@ -10,7 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /Users/supudo/Software/WebGL/Hypersuit/_design/texture_deimios.jpg
+map_Kd texture_deimios.jpg
 
 newmtl MaterialEngines
 Ns 96.078431
@@ -21,7 +21,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /Users/supudo/Software/WebGL/Hypersuit/_design/engine_texture.jpg
+map_Kd engine_texture.jpg
 
 newmtl MaterialPhobos
 Ns 96.078431
@@ -32,7 +32,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /Users/supudo/Software/WebGL/Hypersuit/_design/texture_phobos.jpg
+map_Kd texture_phobos.jpg
 
 newmtl MaterialPlanet
 Ns 96.078431
@@ -43,9 +43,9 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /Users/supudo/Software/WebGL/Hypersuit/_design/texture_planet.png
+map_Kd texture_planet.png
 
-newmtl MaterialRing
+newmtl MaterialRings
 Ns 96.078431
 Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
@@ -54,7 +54,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /Users/supudo/Software/WebGL/Hypersuit/_design/texture_ring.jpg
+map_Kd texture_planet_rings.jpg
 
 newmtl MaterialSpaceship
 Ns 96.078431
@@ -65,7 +65,18 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /Users/supudo/Software/WebGL/Hypersuit/_design/spaceship_texture.jpg
+map_Kd spaceship_texture.jpg
+
+newmtl MaterialSpaceship_spaceship_texture.jpg
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd spaceship_texture.jpg
 
 newmtl None
 Ns 0

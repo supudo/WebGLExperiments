@@ -20,23 +20,25 @@ function clearExceptions() {
 }
 
 function showException(msg, url, lineNumber) {
-  var msgs = $('#game_exceptions');
-  if (!msgs)
-    alert("Exception occured at " + url + " on line " + lineNumber + ": " + msg);
-  else {
-    url = (typeof url == "undefined") ? ' n/a ' : url;
-    lineNumber = (typeof lineNumber == "undefined") ? -1 : lineNumber;
-    var d = new Date();
-    var exceptionDate = d.getHours() + ':' + d.getMinutes() + '.' + d.getSeconds() + '.' + d.getMilliseconds();
-    str = '';
-    str += "<p class='game_messages_exception'>";
-    str += "<u>[" + exceptionDate + "] Exception occured at " + url + " on line " + lineNumber + ":</u> " + msg;
-    str += "<br />------------------------------------</p>";
-    str += msgs.html();
-    if (limitLog && str.length > logLength)
-      str = str.substring(0, logLength);
-    msgs.html(str);
-    console.log("[" + exceptionDate + "] Exception occured at " + url + " on line " + lineNumber + ": " + msg);
+  if (!noExceptions) {
+    var msgs = $('#game_exceptions');
+    if (!msgs)
+      alert("Exception occured at " + url + " on line " + lineNumber + ": " + msg);
+    else {
+      url = (typeof url == "undefined") ? ' n/a ' : url;
+      lineNumber = (typeof lineNumber == "undefined") ? -1 : lineNumber;
+      var d = new Date();
+      var exceptionDate = d.getHours() + ':' + d.getMinutes() + '.' + d.getSeconds() + '.' + d.getMilliseconds();
+      str = '';
+      str += "<p class='game_messages_exception'>";
+      str += "<u>[" + exceptionDate + "] Exception occured at " + url + " on line " + lineNumber + ":</u> " + msg;
+      str += "<br />------------------------------------</p>";
+      str += msgs.html();
+      if (limitLog && str.length > logLength)
+        str = str.substring(0, logLength);
+      msgs.html(str);
+      console.log("[" + exceptionDate + "] Exception occured at " + url + " on line " + lineNumber + ": " + msg);
+    }
   }
 }
 

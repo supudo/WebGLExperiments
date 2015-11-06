@@ -18,6 +18,7 @@ var animatationFrameID;
 var logCalls = true;
 var logInfo = false;
 var glDebug = false;
+var noExceptions = true;
 var logReversed = true;
 var slowMo = false;
 var slowMoFrames = 20;
