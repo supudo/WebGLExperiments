@@ -86,13 +86,6 @@ function WebGLObjLoader(gl) {
     this.processOBJ();
   };
 
-  WebGLObjLoader.prototype.initMeshBuffers = function() {
-    //this.objMesh.bufferNormal = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.vertexNormals, 3);
-    //this.objMesh.bufferTexture = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.textureCoordinates, 2);
-    //this.objMesh.bufferVertex = this.buildBuffer(gl.ARRAY_BUFFER, this.objMesh.geometricVertices, 3);
-    //this.objMesh.bufferIndex = this.buildBuffer(gl.ELEMENT_ARRAY_BUFFER, this.objMesh.indices, 1);
-  };
-
   WebGLObjLoader.prototype.preloadTextureImages = function(callback) {
     objTextureImages = {};
     var allMaterialImages = [];

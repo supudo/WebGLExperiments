@@ -33,6 +33,8 @@ function showException(msg, url, lineNumber) {
     str += "<u>[" + exceptionDate + "] Exception occured at " + url + " on line " + lineNumber + ":</u> " + msg;
     str += "<br />------------------------------------</p>";
     str += msgs.html();
+    if (limitLog && str.length > logLength)
+      str = str.substring(0, logLength);
     msgs.html(str);
     console.log("[" + exceptionDate + "] Exception occured at " + url + " on line " + lineNumber + ": " + msg);
   }
@@ -65,6 +67,10 @@ function showMessageInfo(msg) {
     str = msg + "<br/>------------------------------------<br />" + msgs.html();
     msgs.html(str);
   }
+}
+
+function showLog(obj, dataYn) {
+  console.log(obj);
 }
 
 function listObjectProperties(obj) {

@@ -25,7 +25,7 @@ function OBJLoader(gl, gameCanvas) {
 
     this.showLoading();
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet.obj', '/objects');
+    objLoader.parseObject('../../objects', 'cube.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
@@ -63,6 +63,7 @@ function OBJLoader(gl, gameCanvas) {
     showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
 
     this.initShaders();
+    this.initBuffers();
     everythingInitalized = true;
     this.hideLoading();
   };
@@ -86,46 +87,44 @@ function OBJLoader(gl, gameCanvas) {
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
     useTextureLocation = gl.getUniformLocation(shaderProgram, "u_useTexture");
     texCoordLocation = gl.getAttribLocation(shaderProgram, "a_texCoord");
-
-    gl.enable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
   };
 
-  this.drawScene = function() {
-    showMessageInfo('[OBJLoader] - DrawScene');
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    var modelCounter = 0;
+  this.initBuffers = function() {
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
       for (var j=0; j<model.faces.length; j++) {
-        var face = model.faces[j];
-        this.drawModel(face, modelCounter);
-        modelCounter += 1;
+        this.bufferModelFace(model.faces[j]);
       }
     }
   };
 
-  this.drawModel = function(model, modelCounter) {
-    // vertices
+  this.bufferModelFace = function(modelFace) {
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     var vv = [];
-    for (var i=0; i<model.verts.length; i++) {
-      var v = model.verts[i] * 60;
+    for (var i=0; i<modelFace.verts.length; i++) {
+      var v = modelFace.verts[i] * 60;
       vv.push(v);
     }
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
 
-    // texture & color
+    var buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    var colors = [];
+    for (var i=0; i<modelFace.verts.length; i++) {
+      colors.push(200 + i,  70 + i, 120 + i);
+    }
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+    gl.enableVertexAttribArray(colorLocation);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
     /*
-    if (model.textures && model.textures.length > 0) {
+    if (modelFace.textures && modelFace.textures.length > 0) {
       var texCoordBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelFace.textures), gl.STATIC_DRAW);
       gl.enableVertexAttribArray(texCoordLocation);
       gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -137,7 +136,7 @@ function OBJLoader(gl, gameCanvas) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-      var texImages = this.getMaterialTextureImage(model.materialID);
+      var texImages = this.getMaterialTextureImage(modelFace.materialID);
       printData(texImages.texImages);
       if (texImages.texImages && texImages.texImages.density)
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texImages.texImages.density);
@@ -146,29 +145,25 @@ function OBJLoader(gl, gameCanvas) {
       var buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       var colors = [];
-      for (var i=0; i<model.verts.length; i++) {
+      for (var i=0; i<modelFace.verts.length; i++) {
         colors.push(200 + i,  70 + i, 120 + i);
       }
-      gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-      gl.enableVertexAttribArray(colorLocation);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
     }
     */
+  };
 
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    var colors = [];
-    for (var i=0; i<model.verts.length; i++) {
-      colors.push(200 + i,  70 + i, 120 + i);
-    }
-    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-    gl.enableVertexAttribArray(colorLocation);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+  this.drawScene = function() {
+    showMessageInfo('[OBJLoader] - DrawScene');
 
     rotation = [this.degToRad(40), this.degToRad(25), this.degToRad(325)];
 
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
     var projectionMatrix = this.make2DProjection(gameCanvas.width, gameCanvas.height, 400);
-    var translationMatrix = this.makeTranslation(translation[0] + (modelCounter * 10), translation[1], translation[2]);
+    var translationMatrix = this.makeTranslation(translation[0], translation[1], translation[2]);
     var rotationXMatrix = this.makeXRotation(rotation[0]);
     var rotationYMatrix = this.makeYRotation(rotation[1] + animFrames / 40);
     var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 40);
@@ -182,7 +177,30 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
-    gl.drawArrays(gl.TRIANGLES, 0, model.verts.length / 3);
+    var vn = objLoader.objScene.objTotalCountGeometricVertices;
+    gl.drawArrays(gl.TRIANGLES, 0, vn / 3);
+  };
+
+  this.setGeometry = function() {
+    var vv = [];
+    for (var i=0; i<objLoader.objScene.models.length; i++) {
+      var model = objLoader.objScene.models[i];
+      for (var j=0; j<model.faces.length; j++) {
+        for (var v=0; v<model.faces[j].verts.length; v++) {
+          var vertex = model.faces[j].verts[v] * 60;
+          vv.push(vertex);
+        }
+      }
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
+  };
+
+  this.setColors = function() {
+    var colors = [];
+    for (var i=0; i<1000000; i++) {
+      colors.push(200 + i,  70 + i, 120 + i);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
   };
 
   this.getMaterialTextureImage = function(materialID) {
