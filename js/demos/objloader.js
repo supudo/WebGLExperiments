@@ -20,12 +20,20 @@ function OBJLoader(gl, gameCanvas) {
   this.init = function() {
     showMessageInfo('[OBJLoader] - init');
 
+    /*
+    $("#game_canvas").prependTo("body");
+    $("#game_canvas").css('position', 'absolute');
+    $("#game_canvas").css('top', '0px');
+    $("#game_canvas").css('left', '0px');
+    $("#game_canvas").css('z-index', '-1000');
+    */
+
     animFrames = 0;
     everythingInitalized = false;
 
     this.showLoading();
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
+    objLoader.parseObject('../../objects', 'cube.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
@@ -83,8 +91,8 @@ function OBJLoader(gl, gameCanvas) {
     gl.useProgram(shaderProgram);
 
     positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
-    colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
+    colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
     useTextureLocation = gl.getUniformLocation(shaderProgram, "u_useTexture");
     texCoordLocation = gl.getAttribLocation(shaderProgram, "a_texCoord");
 
@@ -97,19 +105,27 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    var cube = objLoader.objScene.models[0].faces[0];
+    this.drawModel(cube);
+
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
       for (var j=0; j<model.faces.length; j++) {
         var face = model.faces[j];
-        this.drawModel(face);
+        //this.drawModel(face);
       }
     }
   };
 
   this.drawModel = function(model) {
+    var bufferVertices, bufferColors;
+    var bufferTextures = [];
+
+    gl.bindAttribLocation(shaderProgram, 0, positionLocation);
+
     // vertices
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    bufferVertices = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
     var vv = [];
     for (var i=0; i<model.verts.length; i++) {
       var v = model.verts[i] * 100;
@@ -122,11 +138,14 @@ function OBJLoader(gl, gameCanvas) {
     // texture & color
     if (model.textures && model.textures.length > 0) {
       gl.uniform1i(useTextureLocation, true);
+      gl.disableVertexAttribArray(colorLocation);
+
       var texImages = this.getMaterialTextureImage(model.materialID);
       for (var i=0; i<texImages.density.length; i++) {
         var img = texImages.density[i];
 
         var texCoordBuffer = gl.createBuffer();
+        bufferTextures.push(texCoordBuffer);
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
         gl.enableVertexAttribArray(texCoordLocation);
@@ -145,8 +164,10 @@ function OBJLoader(gl, gameCanvas) {
     }
     else {
       gl.uniform1i(useTextureLocation, false);
-      var buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.disableVertexAttribArray(texCoordLocation);
+
+      bufferColors = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors);
       var colors = [];
       for (var i=0; i<model.verts.length; i++) {
         colors.push(200 + i,  70 + i, 120 + i);
@@ -173,9 +194,13 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
-    //mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.01, 1000.0, identity());
-
     gl.drawArrays(gl.TRIANGLES, 0, model.verts.length / 3);
+
+    gl.deleteBuffer(bufferVertices);
+    gl.deleteBuffer(bufferColors);
+    for (var i=0; i<bufferTextures.length; i++) {
+      gl.deleteBuffer(bufferTextures[i]);
+    }
   };
 
   this.getMaterialTextureImage = function(materialID) {
