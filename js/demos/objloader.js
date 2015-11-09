@@ -12,6 +12,8 @@ function OBJLoader(gl, gameCanvas) {
   var shaderProgram, shaderVertex, shaderFragment;
   var positionLocation, colorLocation, matrixLocation;
   var texCoordLocation, useTextureLocation;
+  var bufferVertices = [];
+  var bufferColors = [];
 
   //
   // Public =================================================
@@ -32,8 +34,9 @@ function OBJLoader(gl, gameCanvas) {
     everythingInitalized = false;
 
     this.showLoading();
+
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'cube.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet3.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
@@ -96,28 +99,27 @@ function OBJLoader(gl, gameCanvas) {
     useTextureLocation = gl.getUniformLocation(shaderProgram, "u_useTexture");
     texCoordLocation = gl.getAttribLocation(shaderProgram, "a_texCoord");
 
+    gl.bindAttribLocation(shaderProgram, 0, positionLocation);
+
     //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
   };
 
   this.drawScene = function() {
     showMessageInfo('[OBJLoader] - DrawScene');
-
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    var cube = objLoader.objScene.models[0].faces[0];
-    this.drawModel(cube);
 
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
       for (var j=0; j<model.faces.length; j++) {
         var face = model.faces[j];
-        //this.drawModel(face);
+        this.drawModel(face);
       }
     }
   };
 
   this.drawModel = function(model) {
+    showMessageInfo('[OBJLoader] - drawModel - ' + model.id);
     var bufferVertices, bufferColors;
     var bufferTextures = [];
 
@@ -128,7 +130,7 @@ function OBJLoader(gl, gameCanvas) {
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
     var vv = [];
     for (var i=0; i<model.verts.length; i++) {
-      var v = model.verts[i] * 100;
+      var v = model.verts[i] * 50;
       vv.push(v);
     }
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
@@ -170,7 +172,8 @@ function OBJLoader(gl, gameCanvas) {
       gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors);
       var colors = [];
       for (var i=0; i<model.verts.length; i++) {
-        colors.push(200 + i,  70 + i, 120 + i);
+        //colors.push(200 + i,  70 + i, 120 + i);
+        colors.push(model.solidColor[0], model.solidColor[1], model.solidColor[2]);
       }
       gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
       gl.enableVertexAttribArray(colorLocation);
@@ -197,26 +200,53 @@ function OBJLoader(gl, gameCanvas) {
     gl.drawArrays(gl.TRIANGLES, 0, model.verts.length / 3);
 
     gl.deleteBuffer(bufferVertices);
-    gl.deleteBuffer(bufferColors);
-    for (var i=0; i<bufferTextures.length; i++) {
-      gl.deleteBuffer(bufferTextures[i]);
+    if (bufferColors)
+      gl.deleteBuffer(bufferColors);
+    if (bufferTextures) {
+      for (var i=0; i<bufferTextures.length; i++) {
+        gl.deleteBuffer(bufferTextures[i]);
+      }
     }
   };
 
   this.getMaterialTextureImage = function(materialID) {
     var textureImages = {};
-    var density = [];
+    var ambient = density = specular = specularExp = dissolve = [];
     for (var i=0; i<objLoader.objScene.materials.length; i++) {
       var mat = objLoader.objScene.materials[i];
       if (mat.id == materialID) {
+        if (mat.textures.ambient) {
+          for (var j=0; j<mat.textures.ambient.length; j++) {
+            ambient.push(mat.textures.ambient[0].loadedImage);
+          }
+        }
         if (mat.textures.density) {
           for (var j=0; j<mat.textures.density.length; j++) {
             density.push(mat.textures.density[0].loadedImage);
           }
         }
+        if (mat.textures.specular) {
+          for (var j=0; j<mat.textures.specular.length; j++) {
+            specular.push(mat.textures.specular[0].loadedImage);
+          }
+        }
+        if (mat.textures.specularExp) {
+          for (var j=0; j<mat.textures.specularExp.length; j++) {
+            specularExp.push(mat.textures.specularExp[0].loadedImage);
+          }
+        }
+        if (mat.textures.dissolve) {
+          for (var j=0; j<mat.textures.dissolve.length; j++) {
+            dissolve.push(mat.textures.dissolve[0].loadedImage);
+          }
+        }
       }
     }
+    textureImages.ambient = ambient;
     textureImages.density = density;
+    textureImages.specular = specular;
+    textureImages.specularExp = specularExp;
+    textureImages.dissolve = dissolve;
     return textureImages;
   };
 

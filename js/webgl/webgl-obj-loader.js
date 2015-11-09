@@ -171,6 +171,7 @@ function WebGLObjLoader(gl) {
         currentMaterial.textures = [];
         currentMaterial.norms = [];
         currentMaterial.norms = [];
+        currentMaterial.solidColor = [100, 100, 100];
         singleModel.faces.push(currentMaterial);
       }
       else if (regex_polygonalFaces.test(singleLine)) {
