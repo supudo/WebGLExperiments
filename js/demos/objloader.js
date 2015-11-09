@@ -36,7 +36,7 @@ function OBJLoader(gl, gameCanvas) {
     this.showLoading();
 
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet3.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
@@ -103,11 +103,17 @@ function OBJLoader(gl, gameCanvas) {
 
     //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
+
+    printJSONData(objLoader.objScene.models[2]);
   };
 
   this.drawScene = function() {
     showMessageInfo('[OBJLoader] - DrawScene');
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    //this.drawModel(objLoader.objScene.models[2].faces[0]);
+    //this.drawModel(objLoader.objScene.models[2].faces[1]);
+    //this.drawModel(objLoader.objScene.models[2].faces[2]);
 
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
@@ -130,7 +136,7 @@ function OBJLoader(gl, gameCanvas) {
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
     var vv = [];
     for (var i=0; i<model.verts.length; i++) {
-      var v = model.verts[i] * 50;
+      var v = model.verts[i] * 100;
       vv.push(v);
     }
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
