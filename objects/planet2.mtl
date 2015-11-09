@@ -9,7 +9,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
-illum 2
+illum 0
 map_Kd texture_deimios.jpg
 
 newmtl MaterialEngines
@@ -37,12 +37,12 @@ map_Kd texture_phobos.jpg
 newmtl MaterialPlanet
 Ns 96.078431
 Ka 1.000000 1.000000 1.000000
-Kd 0.640000 0.640000 0.640000
+Kd 0.640000 0.020088 0.584671
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
-illum 2
+illum 0
 map_Kd texture_planet.png
 
 newmtl MaterialRings
@@ -53,7 +53,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
-illum 2
+illum 0
 map_Kd texture_planet_rings.jpg
 
 newmtl MaterialSpaceship
