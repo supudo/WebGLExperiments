@@ -108,14 +108,13 @@ function OBJLoader(gl, gameCanvas) {
 
     //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-
-    printJSONData(objLoader.objScene);
   };
 
   this.drawScene = function() {
     showMessageInfo('[OBJLoader] - DrawScene');
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    //this.drawModel(objLoader.objScene.models[2].faces[0]);
     //this.drawModel(objLoader.objScene.models[1].faces[0]);
 
     for (var i=0; i<objLoader.objScene.models.length; i++) {
@@ -129,7 +128,7 @@ function OBJLoader(gl, gameCanvas) {
 
   this.drawModel = function(model) {
     showMessageInfo('[OBJLoader] - drawModel - ' + model.materialID);
-    var bufferVertices, bufferColors;
+    var bufferVertices;
     var bufferTextures = [];
 
     gl.bindAttribLocation(shaderProgram, 0, positionLocation);
@@ -152,26 +151,25 @@ function OBJLoader(gl, gameCanvas) {
       var texImages = this.getMaterialTextureImage(model.materialID);
       if (this.hasMaterialImages(texImages)) {
         hasTextures = true;
+        for (var i=0; i<texImages.ambient.length; i++) {
+          if (texImages.ambient[i])
+            bufferTextures.push(this.uploadTextures(model, texImages.ambient[i]));
+        }
         for (var i=0; i<texImages.density.length; i++) {
-          var img = texImages.density[i];
-
-          var texCoordBuffer = gl.createBuffer();
-          bufferTextures.push(texCoordBuffer);
-          gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
-          gl.enableVertexAttribArray(texCoordLocation);
-          gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-          var texture = gl.createTexture();
-          gl.uniform4fv(colorLocation, whiteColor);
-          gl.bindTexture(gl.TEXTURE_2D, texture);
-
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+          if (texImages.density[i])
+            bufferTextures.push(this.uploadTextures(model, texImages.density[i]));
+        }
+        for (var i=0; i<texImages.specular.length; i++) {
+          if (texImages.specular[i])
+            bufferTextures.push(this.uploadTextures(model, texImages.specular[i]));
+        }
+        for (var i=0; i<texImages.specularExp.length; i++) {
+          if (texImages.specularExp[i])
+            bufferTextures.push(this.uploadTextures(model, texImages.specularExp[i]));
+        }
+        for (var i=0; i<texImages.dissolve.length; i++) {
+          if (texImages.dissolve[i])
+            bufferTextures.push(this.uploadTextures(model, texImages.dissolve[i]));
         }
       }
     }
@@ -180,7 +178,6 @@ function OBJLoader(gl, gameCanvas) {
       gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
       var whitePixel = new Uint8Array([255, 255, 255, 255]);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
-
       gl.uniform4fv(colorLocation, whiteColor);
       gl.bindTexture(gl.TEXTURE_2D, whiteTexture); 
     }
@@ -205,13 +202,32 @@ function OBJLoader(gl, gameCanvas) {
     gl.drawArrays(gl.TRIANGLES, 0, model.verts.length / 3);
 
     gl.deleteBuffer(bufferVertices);
-    if (bufferColors)
-      gl.deleteBuffer(bufferColors);
     if (bufferTextures) {
       for (var i=0; i<bufferTextures.length; i++) {
         gl.deleteBuffer(bufferTextures[i]);
       }
     }
+  };
+
+  this.uploadTextures = function(model, img) {
+    var texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(texCoordLocation);
+    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+    var texture = gl.createTexture();
+    gl.uniform4fv(colorLocation, whiteColor);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+    return texCoordBuffer;
   };
 
   this.hasMaterialImages = function(materialTextures) {
@@ -231,31 +247,36 @@ function OBJLoader(gl, gameCanvas) {
 
   this.getMaterialTextureImage = function(materialID) {
     var textureImages = {};
-    var ambient = density = specular = specularExp = dissolve = [];
+    var ambient, density, specular, specularExp, dissolve;
     for (var i=0; i<objLoader.objScene.materials.length; i++) {
       var mat = objLoader.objScene.materials[i];
       if (mat.id == materialID) {
         if (mat.textures.ambient) {
+          ambient = [];
           for (var j=0; j<mat.textures.ambient.length; j++) {
             ambient.push(mat.textures.ambient[0].loadedImage);
           }
         }
         if (mat.textures.density) {
+          density = []
           for (var j=0; j<mat.textures.density.length; j++) {
             density.push(mat.textures.density[0].loadedImage);
           }
         }
         if (mat.textures.specular) {
+          specular = [];
           for (var j=0; j<mat.textures.specular.length; j++) {
             specular.push(mat.textures.specular[0].loadedImage);
           }
         }
         if (mat.textures.specularExp) {
+          specularExp = [];
           for (var j=0; j<mat.textures.specularExp.length; j++) {
             specularExp.push(mat.textures.specularExp[0].loadedImage);
           }
         }
         if (mat.textures.dissolve) {
+          dissolve = [];
           for (var j=0; j<mat.textures.dissolve.length; j++) {
             dissolve.push(mat.textures.dissolve[0].loadedImage);
           }
