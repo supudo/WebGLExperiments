@@ -147,6 +147,7 @@ function OBJLoader(gl, gameCanvas) {
 
     // texture & color
     var hasTextures = false;
+    var whiteTexture;
     if (model.textures && model.textures.length > 0) {
       var texImages = this.getMaterialTextureImage(model.materialID);
       if (this.hasMaterialImages(texImages)) {
@@ -174,7 +175,7 @@ function OBJLoader(gl, gameCanvas) {
       }
     }
     if (!hasTextures) {
-      var whiteTexture = gl.createTexture();
+      whiteTexture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
       var whitePixel = new Uint8Array([255, 255, 255, 255]);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
@@ -202,6 +203,8 @@ function OBJLoader(gl, gameCanvas) {
     gl.drawArrays(gl.TRIANGLES, 0, model.verts.length / 3);
 
     gl.deleteBuffer(bufferVertices);
+    if (whiteTexture)
+      gl.deleteTexture(whiteTexture);
     if (bufferTextures) {
       for (var i=0; i<bufferTextures.length; i++) {
         gl.deleteBuffer(bufferTextures[i]);
