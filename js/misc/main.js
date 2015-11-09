@@ -2,7 +2,7 @@ var currentDemo = null;
 var g_fpsCounter = null;
 
 // WebGL Inspector fix
-//setDemo(8);
+setDemo(8);
 
 document.onkeydown = gameUI_KeyDown;
 document.onkeyup = gameUI_KeyUp;
@@ -50,7 +50,7 @@ function startGame(demoIndex) {
 
     if (demoIndex > 0) 
       runGame(gameCanvas);
-    else
+    else 
       release();
   }
 }
@@ -60,6 +60,8 @@ function release() {
   $('#game_background').css("background-image", "url()");
   gl.canvas.width = 1;
   gl.canvas.height = 1;
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
   if (currentDemo != null && typeof currentDemo != "undefined") {
     currentDemo.release();
     currentDemo = null;

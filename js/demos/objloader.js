@@ -12,6 +12,7 @@ function OBJLoader(gl, gameCanvas) {
   var shaderProgram, shaderVertex, shaderFragment;
   var positionLocation, colorLocation, matrixLocation;
   var texCoordLocation, useTextureLocation;
+  var whiteColor = new Float32Array([1, 1, 1, 1]);
 
   //
   // Public =================================================
@@ -94,7 +95,7 @@ function OBJLoader(gl, gameCanvas) {
 
     positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
-    colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
+    colorLocation = gl.getUniformLocation(shaderProgram, "u_color");
     useTextureLocation = gl.getUniformLocation(shaderProgram, "u_useTexture");
     texCoordLocation = gl.getAttribLocation(shaderProgram, "a_texCoord");
 
@@ -107,15 +108,15 @@ function OBJLoader(gl, gameCanvas) {
 
     //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
+
+    printJSONData(objLoader.objScene);
   };
 
   this.drawScene = function() {
     showMessageInfo('[OBJLoader] - DrawScene');
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    //this.drawModel(objLoader.objScene.models[2].faces[0]);
-    //this.drawModel(objLoader.objScene.models[2].faces[1]);
-    //this.drawModel(objLoader.objScene.models[2].faces[2]);
+    //this.drawModel(objLoader.objScene.models[1].faces[0]);
 
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
@@ -127,7 +128,7 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.drawModel = function(model) {
-    showMessageInfo('[OBJLoader] - drawModel - ' + model.id);
+    showMessageInfo('[OBJLoader] - drawModel - ' + model.materialID);
     var bufferVertices, bufferColors;
     var bufferTextures = [];
 
@@ -146,46 +147,42 @@ function OBJLoader(gl, gameCanvas) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
 
     // texture & color
+    var hasTextures = false;
     if (model.textures && model.textures.length > 0) {
-      gl.uniform1i(useTextureLocation, true);
-      gl.disableVertexAttribArray(colorLocation);
-
       var texImages = this.getMaterialTextureImage(model.materialID);
-      for (var i=0; i<texImages.density.length; i++) {
-        var img = texImages.density[i];
+      if (this.hasMaterialImages(texImages)) {
+        hasTextures = true;
+        for (var i=0; i<texImages.density.length; i++) {
+          var img = texImages.density[i];
 
-        var texCoordBuffer = gl.createBuffer();
-        bufferTextures.push(texCoordBuffer);
-        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(texCoordLocation);
-        gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+          var texCoordBuffer = gl.createBuffer();
+          bufferTextures.push(texCoordBuffer);
+          gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
+          gl.enableVertexAttribArray(texCoordLocation);
+          gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+          var texture = gl.createTexture();
+          gl.uniform4fv(colorLocation, whiteColor);
+          gl.bindTexture(gl.TEXTURE_2D, texture);
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        }
       }
     }
-    else {
-      gl.uniform1i(useTextureLocation, false);
-      gl.disableVertexAttribArray(texCoordLocation);
+    if (!hasTextures) {
+      var whiteTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+      var whitePixel = new Uint8Array([255, 255, 255, 255]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
 
-      bufferColors = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors);
-      var colors = [];
-      for (var i=0; i<model.verts.length; i++) {
-        colors.push(200 + i,  70 + i, 120 + i);
-        //colors.push(model.solidColor[0], model.solidColor[1], model.solidColor[2]);
-      }
-      gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-      gl.enableVertexAttribArray(colorLocation);
-      gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
+      gl.uniform4fv(colorLocation, whiteColor);
+      gl.bindTexture(gl.TEXTURE_2D, whiteTexture); 
     }
 
     rotation = [this.degToRad(40), this.degToRad(25), this.degToRad(325)];
@@ -215,6 +212,21 @@ function OBJLoader(gl, gameCanvas) {
         gl.deleteBuffer(bufferTextures[i]);
       }
     }
+  };
+
+  this.hasMaterialImages = function(materialTextures) {
+    var hasImages = false;
+    if (materialTextures.ambient && materialTextures.ambient.length)
+      hasImages = true;
+    else if (materialTextures.density && materialTextures.density.length)
+      hasImages = true;
+    else if (materialTextures.specular && materialTextures.specular.length)
+      hasImages = true;
+    else if (materialTextures.specularExp && materialTextures.specularExp.length)
+      hasImages = true;
+    else if (materialTextures.dissolve && materialTextures.dissolve.length)
+      hasImages = true;
+    return hasImages;
   };
 
   this.getMaterialTextureImage = function(materialID) {
