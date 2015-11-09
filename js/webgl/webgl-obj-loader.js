@@ -211,6 +211,7 @@ function WebGLObjLoader(gl) {
     this.objScene.objTotalCountGeometricVertices = geometricVerticesCountTotal;
     this.objScene.objTotalCountTextureCoordinates = textureCoordinatesCountTotal;
     this.objScene.objTotalCountNormalVertices = normalVerticesCountTotal;
+    this.sortModels(objModels);
     this.objScene.models = objModels;
     this.objScene.materials = objMaterials;
   };
@@ -394,6 +395,21 @@ function WebGLObjLoader(gl) {
       return req.responseText;
     else
       throw "Cannot load obj file! (" + fileURL + ")";
+  };
+
+  this.sortModels = function(objModels) {
+    var swapped;
+    do {
+      swapped = false;
+      for (var i=0; i<(objModels.length - 1); i++) {
+        if (objModels[i].geometricVerticesCount > objModels[i + 1].geometricVerticesCount) {
+          var temp = objModels[i];
+          objModels[i] = objModels[i + 1];
+          objModels[i + 1] = temp;
+          swapped = true;
+        }
+      }
+    } while (swapped);
   };
 
 }

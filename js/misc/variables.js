@@ -8,7 +8,7 @@ var availableDemos = [
   [ '2D Rotation', 'Rotate2D', 0, '', false, false ],
   [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos', false, false ],
   [ 'Complex 3D', 'Complex3D', 0, '', false, false ],
-  [ 'OBJ Loader', 'OBJLoader', 0, '', true, true ],
+  [ 'OBJ Loader', 'OBJLoader', 0, '', true, false ],
   [ '! Hypersuit', 'Hypersuit', 0, '', false, false ]
 ];
 

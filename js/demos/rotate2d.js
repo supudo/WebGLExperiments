@@ -69,6 +69,11 @@ function Rotate2D(gl, gameCanvas) {
     rotationLocation = gl.getUniformLocation(shaderProgram, "u_rotation");
     newRotationLocation = gl.getUniformLocation(shaderProgram, "u_newrotation");
     matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
+
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
   };
 
   this.drawScene = function() {

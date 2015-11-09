@@ -2,7 +2,7 @@ var currentDemo = null;
 var g_fpsCounter = null;
 
 // WebGL Inspector fix
-setDemo(8);
+//setDemo(8);
 
 document.onkeydown = gameUI_KeyDown;
 document.onkeyup = gameUI_KeyUp;
@@ -37,21 +37,17 @@ function startGame(demoIndex) {
   gameCanvas.width = gameCanvasJQ.parent().width();
   gameCanvas.height = gameCanvasJQ.parent().height();
   gl = getWebGLContext(gameCanvas);
-  gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, logAndValidate);
+  if (glDebug)
+    gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, logAndValidate);
 
   if (!gl)
     showMessage("WebGL Context was lost and is NULL!");
   else {
     gl.viewport(0, 0, gameCanvas.width, gameCanvas.height);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.BLEND);
 
     var testsRoutines = new Tests();
     testsRoutines.runTests(gl, gameCanvas);
 
-    mat4.ortho(0, gameCanvas.width, 0, gameCanvas.height, -1, 1, pMatrix);
     if (demoIndex > 0) 
       runGame(gameCanvas);
     else
@@ -159,4 +155,15 @@ function showOptions() {
       .attr('id', 'panel_options')
       .html(options_html)
   );
+}
+
+function changeViewport(size) {
+  if (size > 0) {
+    $("#game_canvas").width(size).height(size);
+    $("#game_canvas").css('border','1px solid #ffffff');
+  }
+  else {
+    $("#game_canvas").width('100%').height('100%');
+    $("#game_canvas").css('border','0px');
+  }
 }

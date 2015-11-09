@@ -12,8 +12,6 @@ function OBJLoader(gl, gameCanvas) {
   var shaderProgram, shaderVertex, shaderFragment;
   var positionLocation, colorLocation, matrixLocation;
   var texCoordLocation, useTextureLocation;
-  var bufferVertices = [];
-  var bufferColors = [];
 
   //
   // Public =================================================
@@ -37,6 +35,7 @@ function OBJLoader(gl, gameCanvas) {
 
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
+    //objLoader.parseObject('../../objects', 'robot.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
@@ -72,7 +71,7 @@ function OBJLoader(gl, gameCanvas) {
   //
 
   this.imageTexturesLoaded = function() {
-    showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
+    //showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
 
     this.initShaders();
     everythingInitalized = true;
@@ -101,10 +100,13 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.bindAttribLocation(shaderProgram, 0, positionLocation);
 
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
     //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
-
-    printJSONData(objLoader.objScene.models[2]);
   };
 
   this.drawScene = function() {
@@ -178,8 +180,8 @@ function OBJLoader(gl, gameCanvas) {
       gl.bindBuffer(gl.ARRAY_BUFFER, bufferColors);
       var colors = [];
       for (var i=0; i<model.verts.length; i++) {
-        //colors.push(200 + i,  70 + i, 120 + i);
-        colors.push(model.solidColor[0], model.solidColor[1], model.solidColor[2]);
+        colors.push(200 + i,  70 + i, 120 + i);
+        //colors.push(model.solidColor[0], model.solidColor[1], model.solidColor[2]);
       }
       gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
       gl.enableVertexAttribArray(colorLocation);

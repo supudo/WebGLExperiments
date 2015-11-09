@@ -93,6 +93,21 @@
               <div class="checkbox"><label><input type="checkbox" id="do_rotation"> Star Rotation</label></div>
             </div>
             <div class="form-group">
+              <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="ddViewport" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  <span class="dd-label">Change Viewport Size</span>
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="ddViewport">
+                  <li><a href="#" onclick="changeViewport(32);">32 x 32</a></li>
+                  <li><a href="#" onclick="changeViewport(64);">64 x 64</a></li>
+                  <li><a href="#" onclick="changeViewport(128);">128 x 128</a></li>
+                  <li><a href="#" onclick="changeViewport(256);">256 x 256</a></li>
+                  <li><a href="#" onclick="changeViewport(0);">- 400 x 600</a></li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group">
               <label class="control-label">SlowMo framerate:</label>
               <input type="text" id="slowmo_framerate" class="form-control" placeholder="5" />
             </div>
