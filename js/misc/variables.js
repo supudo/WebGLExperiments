@@ -9,6 +9,7 @@ var availableDemos = [
   [ 'Starfield TS', 'StarfieldTS', 1, 'WebGLDemos', false, false ],
   [ 'Complex 3D', 'Complex3D', 0, '', false, false ],
   [ 'OBJ Loader', 'OBJLoader', 0, '', true, false ],
+  [ 'OBJ Loader 2', 'OBJLoader2', 0, '', true, false ],
   [ '! Hypersuit', 'Hypersuit', 0, '', false, false ]
 ];
 

@@ -5,14 +5,16 @@ function OBJLoader(gl, gameCanvas) {
   //
 
   var animFrames;
-  var translation = [150, 250, 0];
-  var rotation = [0, 0, 0];
-  var scale = [1, 1, 1];
   var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
-  var positionLocation, colorLocation, matrixLocation;
-  var texCoordLocation, useTextureLocation;
-  var whiteColor = new Float32Array([1, 1, 1, 1]);
+  var vertexPositionAttribute, textureCoordAttribute;
+  var mvMatrixStack = [];
+  var glBuffers = [];
+
+  var sceneRotation = 0.0;
+  var lastSceneUpdateTime = 0;
+
+  var mvMatrix, perspectiveMatrix;
 
   //
   // Public =================================================
@@ -75,6 +77,8 @@ function OBJLoader(gl, gameCanvas) {
     //showMessage('[OBJLoader] Rendering object - ' + objLoader.objTitle);
 
     this.initShaders();
+    this.initBuffersAndTextures();
+
     everythingInitalized = true;
     this.hideLoading();
   };
@@ -93,159 +97,132 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.useProgram(shaderProgram);
 
-    positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
-    matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
-    colorLocation = gl.getUniformLocation(shaderProgram, "u_color");
-    useTextureLocation = gl.getUniformLocation(shaderProgram, "u_useTexture");
-    texCoordLocation = gl.getAttribLocation(shaderProgram, "a_texCoord");
+    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(vertexPositionAttribute);
 
-    gl.bindAttribLocation(shaderProgram, 0, positionLocation);
+    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(textureCoordAttribute);
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.BLEND);
 
     //gl.enable(gl.CULL_FACE);
+    gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
   };
 
-  this.drawScene = function() {
-    showMessageInfo('[OBJLoader] - DrawScene');
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    //this.drawModel(objLoader.objScene.models[2].faces[0]);
-    //this.drawModel(objLoader.objScene.models[1].faces[0]);
-
+  this.initBuffersAndTextures = function() {
+    glBuffers = [];
     for (var i=0; i<objLoader.objScene.models.length; i++) {
       var model = objLoader.objScene.models[i];
       for (var j=0; j<model.faces.length; j++) {
         var face = model.faces[j];
-        this.drawModel(face);
+        var faceBuffers = {};
+
+        var bufferVertices = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
+        var vv = [];
+        for (var vi=0; vi<face.verts.length; vi++) {
+          var v = face.verts[vi];
+          vv.push(v);
+        }
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
+        faceBuffers.bufferVertices = bufferVertices;
+        faceBuffers.verticesCount = face.verts.length;
+
+        var bufferTextures = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(face.textures), gl.STATIC_DRAW);
+        faceBuffers.bufferTextures = bufferTextures;
+
+        var bufferIndices = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferIndices);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(face.indices), gl.STATIC_DRAW);
+        faceBuffers.bufferIndices = bufferIndices;
+
+        var textures = [];
+        var texImages = this.getMaterialTextureImage(face.materialID);
+        if (this.hasMaterialImages(texImages)) {
+          hasTextures = true;
+          for (var ti=0; ti<texImages.ambient.length; ti++) {
+            if (texImages.ambient[ti])
+              textures.push(this.putTexture(texImages.ambient[ti]));
+          }
+          for (var ti=0; ti<texImages.density.length; ti++) {
+            if (texImages.density[ti])
+              textures.push(this.putTexture(texImages.density[ti]));
+          }
+          for (var ti=0; ti<texImages.specular.length; ti++) {
+            if (texImages.specular[ti])
+              textures.push(this.putTexture(texImages.specular[ti]));
+          }
+          for (var ti=0; ti<texImages.specularExp.length; ti++) {
+            if (texImages.specularExp[ti])
+              textures.push(this.putTexture(texImages.specularExp[ti]));
+          }
+          for (var ti=0; ti<texImages.dissolve.length; ti++) {
+            if (texImages.dissolve[ti])
+              textures.push(this.putTexture(texImages.dissolve[ti]));
+          }
+        }
+        faceBuffers.textures = textures;
+        faceBuffers.textures = this.putTexture(texImages.density[0]);
+
+        glBuffers.push(faceBuffers);
       }
     }
   };
 
-  this.drawModel = function(model) {
-    showMessageInfo('[OBJLoader] - drawModel - ' + model.materialID);
-    var bufferVertices;
-    var bufferTextures = [];
-
-    gl.bindAttribLocation(shaderProgram, 0, positionLocation);
-
-    // vertices
-    bufferVertices = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
-    var vv = [];
-    for (var i=0; i<model.verts.length; i++) {
-      var v = model.verts[i] * 100;
-      vv.push(v);
-    }
-    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
-
-    // texture & color
-    var hasTextures = false;
-    var whiteTexture;
-    if (model.textures && model.textures.length > 0) {
-      var texImages = this.getMaterialTextureImage(model.materialID);
-      if (this.hasMaterialImages(texImages)) {
-        hasTextures = true;
-        for (var i=0; i<texImages.ambient.length; i++) {
-          if (texImages.ambient[i])
-            bufferTextures.push(this.uploadTextures(model, texImages.ambient[i]));
-        }
-        for (var i=0; i<texImages.density.length; i++) {
-          if (texImages.density[i])
-            bufferTextures.push(this.uploadTextures(model, texImages.density[i]));
-        }
-        for (var i=0; i<texImages.specular.length; i++) {
-          if (texImages.specular[i])
-            bufferTextures.push(this.uploadTextures(model, texImages.specular[i]));
-        }
-        for (var i=0; i<texImages.specularExp.length; i++) {
-          if (texImages.specularExp[i])
-            bufferTextures.push(this.uploadTextures(model, texImages.specularExp[i]));
-        }
-        for (var i=0; i<texImages.dissolve.length; i++) {
-          if (texImages.dissolve[i])
-            bufferTextures.push(this.uploadTextures(model, texImages.dissolve[i]));
-        }
-      }
-    }
-    if (!hasTextures) {
-      whiteTexture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
-      var whitePixel = new Uint8Array([255, 255, 255, 255]);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
-      gl.uniform4fv(colorLocation, whiteColor);
-      gl.bindTexture(gl.TEXTURE_2D, whiteTexture); 
-    }
-
-    rotation = [this.degToRad(40), this.degToRad(25), this.degToRad(325)];
-
-    var projectionMatrix = this.make2DProjection(gameCanvas.width, gameCanvas.height, 400);
-    var translationMatrix = this.makeTranslation(translation[0], translation[1], translation[2]);
-    var rotationXMatrix = this.makeXRotation(rotation[0]);
-    var rotationYMatrix = this.makeYRotation(rotation[1] + animFrames / 40);
-    var rotationZMatrix = this.makeZRotation(rotation[2] + animFrames / 40);
-    var scaleMatrix = this.makeScale(scale[0], scale[1], scale[2]);
-
-    var matrix = this.matrixMultiply(scaleMatrix, rotationZMatrix);
-    matrix = this.matrixMultiply(matrix, rotationYMatrix);
-    matrix = this.matrixMultiply(matrix, rotationXMatrix);
-    matrix = this.matrixMultiply(matrix, translationMatrix);
-    matrix = this.matrixMultiply(matrix, projectionMatrix);
-
-    gl.uniformMatrix4fv(matrixLocation, false, matrix);
-
-    gl.drawArrays(gl.TRIANGLES, 0, model.verts.length / 3);
-
-    gl.deleteBuffer(bufferVertices);
-    if (whiteTexture)
-      gl.deleteTexture(whiteTexture);
-    if (bufferTextures) {
-      for (var i=0; i<bufferTextures.length; i++) {
-        gl.deleteBuffer(bufferTextures[i]);
-      }
-    }
-  };
-
-  this.uploadTextures = function(model, img) {
-    var texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textures), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
+  this.putTexture = function(image) {
     var texture = gl.createTexture();
-    gl.uniform4fv(colorLocation, whiteColor);
     gl.bindTexture(gl.TEXTURE_2D, texture);
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-
-    return texCoordBuffer;
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
   };
 
-  this.hasMaterialImages = function(materialTextures) {
-    var hasImages = false;
-    if (materialTextures.ambient && materialTextures.ambient.length)
-      hasImages = true;
-    else if (materialTextures.density && materialTextures.density.length)
-      hasImages = true;
-    else if (materialTextures.specular && materialTextures.specular.length)
-      hasImages = true;
-    else if (materialTextures.specularExp && materialTextures.specularExp.length)
-      hasImages = true;
-    else if (materialTextures.dissolve && materialTextures.dissolve.length)
-      hasImages = true;
-    return hasImages;
+  this.drawScene = function() {
+    showMessageInfo('[OBJLoader] - drawScene');
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    perspectiveMatrix = makePerspective(45, gameCanvas.width / gameCanvas.height, 0.1, 100.0);
+
+    this.loadIdentity();
+    this.mvTranslate([-0.0, 0.0, -6.0]);
+    this.mvPushMatrix();
+    this.mvRotate(sceneRotation, [1, 0, 1]);
+
+    for (var i=0; i<glBuffers.length; i++) {
+      var faceBuffers = glBuffers[i];
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferVertices);
+      gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferTextures);
+      gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures);
+      gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffers.bufferIndices);
+      this.setMatrixUniforms();
+      gl.drawElements(gl.TRIANGLES, faceBuffers.verticesCount / 3, gl.UNSIGNED_SHORT, 0);
+    }
+
+    this.mvPopMatrix();
+
+    var currentTime = (new Date).getTime();
+    if (lastSceneUpdateTime) {
+      var delta = currentTime - lastSceneUpdateTime;
+      sceneRotation += (30 * delta) / 1000.0;
+    }
+
+    lastSceneUpdateTime = currentTime;
   };
 
   this.getMaterialTextureImage = function(materialID) {
@@ -294,181 +271,66 @@ function OBJLoader(gl, gameCanvas) {
     return textureImages;
   };
 
-  this.getProgramInfo = function(program) {
-    var result = {
-      attributes: [],
-      uniforms: [],
-      attributeCount: 0,
-      uniformCount: 0
-    },
-    activeUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS),
-    activeAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-
-    var enums = {
-      0x8B50: 'FLOAT_VEC2',
-      0x8B51: 'FLOAT_VEC3',
-      0x8B52: 'FLOAT_VEC4',
-      0x8B53: 'INT_VEC2',
-      0x8B54: 'INT_VEC3',
-      0x8B55: 'INT_VEC4',
-      0x8B56: 'BOOL',
-      0x8B57: 'BOOL_VEC2',
-      0x8B58: 'BOOL_VEC3',
-      0x8B59: 'BOOL_VEC4',
-      0x8B5A: 'FLOAT_MAT2',
-      0x8B5B: 'FLOAT_MAT3',
-      0x8B5C: 'FLOAT_MAT4',
-      0x8B5E: 'SAMPLER_2D',
-      0x8B60: 'SAMPLER_CUBE',
-      0x1400: 'BYTE',
-      0x1401: 'UNSIGNED_BYTE',
-      0x1402: 'SHORT',
-      0x1403: 'UNSIGNED_SHORT',
-      0x1404: 'INT',
-      0x1405: 'UNSIGNED_INT',
-      0x1406: 'FLOAT'
-    };
-
-    for (var i=0; i<activeUniforms; i++) {
-      var uniform = gl.getActiveUniform(program, i);
-      uniform.typeName = enums[uniform.type];
-      result.uniforms.push(uniform);
-      result.uniformCount += uniform.size;
-    }
-
-    for (var i=0; i<activeAttributes; i++) {
-      var attribute = gl.getActiveAttrib(program, i);
-      attribute.typeName = enums[attribute.type];
-      result.attributes.push(attribute);
-      result.attributeCount += attribute.size;
-    }
-
-    return result;
+  this.hasMaterialImages = function(materialTextures) {
+    var hasImages = false;
+    if (materialTextures.ambient && materialTextures.ambient.length)
+      hasImages = true;
+    else if (materialTextures.density && materialTextures.density.length)
+      hasImages = true;
+    else if (materialTextures.specular && materialTextures.specular.length)
+      hasImages = true;
+    else if (materialTextures.specularExp && materialTextures.specularExp.length)
+      hasImages = true;
+    else if (materialTextures.dissolve && materialTextures.dissolve.length)
+      hasImages = true;
+    return hasImages;
   };
 
   //
   // Math =================================================
   //
 
-  this.make2DProjection = function(width, height, depth) {
-    return [
-       2 / width, 0, 0, 0,
-       0, -2 / height, 0, 0,
-       0, 0, 2 / depth, 0,
-      -1, 1, 0, 1,
-    ];
+  this.loadIdentity = function() {
+    mvMatrix = Matrix.I(4);
   };
 
-  this.makeTranslation = function(tx, ty, tz) {
-    return [
-      1,  0,  0,  0,
-      0,  1,  0,  0,
-      0,  0,  1,  0,
-      tx, ty, tz,  1
-    ];
+  this.multMatrix = function(m) {
+    mvMatrix = mvMatrix.x(m);
   };
 
-  this.makeScale = function(sx, sy, sz) {
-    return [
-      sx, 0,  0,  0,
-      0, sy,  0,  0,
-      0,  0, sz,  0,
-      0,  0,  0,  1,
-    ];
+  this.mvTranslate = function(v) {
+    this.multMatrix(Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());
   };
 
-  this.makeXRotation = function(angleInRadians) {
-    var c = Math.cos(angleInRadians);
-    var s = Math.sin(angleInRadians);
-    return [
-      1, 0, 0, 0,
-      0, c, s, 0,
-      0, -s, c, 0,
-      0, 0, 0, 1
-    ];
+  this.setMatrixUniforms = function() {
+    var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.flatten()));
+
+    var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
   };
 
-  this.makeYRotation = function(angleInRadians) {
-    var c = Math.cos(angleInRadians);
-    var s = Math.sin(angleInRadians);
-    return [
-      c, 0, -s, 0,
-      0, 1, 0, 0,
-      s, 0, c, 0,
-      0, 0, 0, 1
-    ];
+  this.mvPushMatrix = function(m) {
+    if (m) {
+      mvMatrixStack.push(m.dup());
+      mvMatrix = m.dup();
+    }
+    else
+      mvMatrixStack.push(mvMatrix.dup());
   };
 
-  this.makeZRotation = function(angleInRadians) {
-    var c = Math.cos(angleInRadians);
-    var s = Math.sin(angleInRadians);
-    return [
-       c, s, 0, 0,
-      -s, c, 0, 0,
-       0, 0, 1, 0,
-       0, 0, 0, 1,
-    ];
+  this.mvPopMatrix = function() {
+    if (!mvMatrixStack.length)
+      throw("Can't pop from an empty matrix stack.");
+
+    mvMatrix = mvMatrixStack.pop();
+    return mvMatrix;
   };
 
-  this.radToDeg = function(r) {
-    return r * 180 / Math.PI;
-  };
-
-  this.degToRad = function(d) {
-    return d * Math.PI / 180;
-  };
-
-  this.matrixMultiply = function(a, b) {
-    var a00 = a[0 * 4 + 0];
-    var a01 = a[0 * 4 + 1];
-    var a02 = a[0 * 4 + 2];
-    var a03 = a[0 * 4 + 3];
-    var a10 = a[1 * 4 + 0];
-    var a11 = a[1 * 4 + 1];
-    var a12 = a[1 * 4 + 2];
-    var a13 = a[1 * 4 + 3];
-    var a20 = a[2 * 4 + 0];
-    var a21 = a[2 * 4 + 1];
-    var a22 = a[2 * 4 + 2];
-    var a23 = a[2 * 4 + 3];
-    var a30 = a[3 * 4 + 0];
-    var a31 = a[3 * 4 + 1];
-    var a32 = a[3 * 4 + 2];
-    var a33 = a[3 * 4 + 3];
-    var b00 = b[0 * 4 + 0];
-    var b01 = b[0 * 4 + 1];
-    var b02 = b[0 * 4 + 2];
-    var b03 = b[0 * 4 + 3];
-    var b10 = b[1 * 4 + 0];
-    var b11 = b[1 * 4 + 1];
-    var b12 = b[1 * 4 + 2];
-    var b13 = b[1 * 4 + 3];
-    var b20 = b[2 * 4 + 0];
-    var b21 = b[2 * 4 + 1];
-    var b22 = b[2 * 4 + 2];
-    var b23 = b[2 * 4 + 3];
-    var b30 = b[3 * 4 + 0];
-    var b31 = b[3 * 4 + 1];
-    var b32 = b[3 * 4 + 2];
-    var b33 = b[3 * 4 + 3];
-    return [
-      a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
-      a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
-      a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32,
-      a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33,
-      a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30,
-      a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31,
-      a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32,
-      a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33,
-      a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30,
-      a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31,
-      a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32,
-      a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33,
-      a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30,
-      a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31,
-      a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
-      a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33
-    ];
+  this.mvRotate = function(angle, v) {
+    var inRadians = angle * Math.PI / 180.0;
+    var m = Matrix.Rotation(inRadians, $V([v[0], v[1], v[2]])).ensure4x4();
+    this.multMatrix(m);
   };
 
   //

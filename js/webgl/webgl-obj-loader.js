@@ -131,6 +131,7 @@ function WebGLObjLoader(gl) {
     var geometricVerticesCountTotal = 0;
     var textureCoordinatesCountTotal = 0;
     var normalVerticesCountTotal = 0;
+    var indicesCounter = 0;
     for (var i=0; i<objLines.length; i++) {
       var singleLine = objLines[i];
       var lineElements = singleLine.split(regex_whiteSpace);
@@ -167,11 +168,13 @@ function WebGLObjLoader(gl) {
         currentMaterial.geometricVerticesCount = 0;
         currentMaterial.textureCoordinatesCount = 0;
         currentMaterial.normalVerticesCount = 0;
+        currentMaterial.indicesCount = 0;
         currentMaterial.verts = [];
         currentMaterial.textures = [];
         currentMaterial.norms = [];
-        currentMaterial.norms = [];
+        currentMaterial.indices = [];
         currentMaterial.solidColor = [100, 100, 100];
+        indicesCounter = 0;
         singleModel.faces.push(currentMaterial);
       }
       else if (regex_polygonalFaces.test(singleLine)) {
@@ -204,6 +207,9 @@ function WebGLObjLoader(gl) {
           normalVerticesCountTotal += 3;
           singleModel.normalVerticesCount += 3;
           currentMaterial.normalVerticesCount += 3;
+
+          currentMaterial.indices.push(indicesCounter);
+          indicesCounter += 1;
         }
       }
     }
