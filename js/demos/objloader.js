@@ -55,7 +55,7 @@ function OBJLoader(gl, gameCanvas) {
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
-      this.imageTexturesLoaded();
+      this.imageTexturesLoaded().bind(this);
   };
    
   this.changeSettings = function() {
@@ -71,6 +71,13 @@ function OBJLoader(gl, gameCanvas) {
   this.release = function() {
     showMessageInfo('[OBJLoader] - release');
     try {
+      for (var i=0; i<glBuffers.length; i++) {
+        var faceBuffers = glBuffers[i];
+        gl.deleteBuffer(faceBuffers.bufferVertices);
+        gl.deleteBuffer(faceBuffers.bufferTextures);
+        gl.deleteTexture(faceBuffers.textures);
+        gl.deleteBuffer(faceBuffers.bufferIndices);
+      }
       objLoader.release();
       gl.deleteShader(shaderFragment);
       gl.deleteShader(shaderVertex);
@@ -353,7 +360,7 @@ function OBJLoader(gl, gameCanvas) {
   this.showLoading = function() {
     showMessage('Loading....');
     var css_style = '';
-    css_style += 'display: visible; background-color: #ababab; position:absolute;';
+    css_style += 'display: block; background-color: #ababab; position:absolute;';
     css_style += 'top: 0%; left: 0%; width: 100%; height: 100%;';
     css_style += 'z-index: 1001; -moz-opacity: 0.8; opacity: .90; filter: alpha(opacity=80);';
     var element_style = 'position: absolute; top: 40%; left: 40%;';
@@ -370,6 +377,6 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.hideLoading = function() {
-    $('#objloaderloading').hide();
+    $('#objloaderloading').remove();
   };
 };

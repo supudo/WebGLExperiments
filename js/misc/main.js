@@ -2,7 +2,7 @@ var currentDemo = null;
 var g_fpsCounter = null;
 
 // WebGL Inspector fix
-setDemo(8);
+//setDemo(8);
 
 document.onkeydown = gameUI_KeyDown;
 document.onkeyup = gameUI_KeyUp;
