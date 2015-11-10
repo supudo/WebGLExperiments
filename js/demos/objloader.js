@@ -34,10 +34,10 @@ function OBJLoader(gl, gameCanvas) {
     animFrames = 0;
     everythingInitalized = false;
 
-    this.showLoading();
+    //this.showLoading();
 
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet3.obj', '/objects');
     //objLoader.parseObject('../../objects', 'robot.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
