@@ -7,7 +7,7 @@ function OBJLoader(gl, gameCanvas) {
   var animFrames;
   var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
-  var vertexPositionAttribute, textureCoordAttribute, colorLocation;
+  var vertexPositionAttribute, textureCoordAttribute;
   var mvMatrixStack = [];
   var glBuffers = [];
 
@@ -50,7 +50,7 @@ function OBJLoader(gl, gameCanvas) {
     this.showLoading();
 
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet3.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
     //objLoader.parseObject('../../objects', 'robot.obj', '/objects');
     if (objLoader.objScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
@@ -151,10 +151,20 @@ function OBJLoader(gl, gameCanvas) {
         faceBuffers.bufferVertices = bufferVertices;
         faceBuffers.verticesCount = face.verts.length;
 
-        var bufferTextures = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(face.textures), gl.STATIC_DRAW);
-        faceBuffers.bufferTextures = bufferTextures;
+        if (face.textures && face.textures.length > 0) {
+          var bufferTextures = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(face.textures), gl.STATIC_DRAW);
+          faceBuffers.bufferTextures = bufferTextures;
+        }
+        else {
+          var whiteTexture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+          var whitePixel = new Uint8Array([255, 255, 255, 255]);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
+          gl.bindTexture(gl.TEXTURE_2D, whiteTexture); 
+          faceBuffers.bufferTextures = bufferTextures;
+        }
 
         var bufferIndices = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferIndices);
