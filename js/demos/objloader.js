@@ -23,6 +23,19 @@ function OBJLoader(gl, gameCanvas) {
   this.init = function() {
     showMessageInfo('[OBJLoader] - init');
 
+    var that = this;
+    $.when(
+      $.getScript("js/webgl/sylvester.js"),
+      $.getScript("js/webgl/gl-utils.js"),
+      $.Deferred(function(deferred) {
+        $(deferred.resolve);
+      })
+      ).done(function() {
+        that.postInit();
+    });
+  };
+
+  this.postInit = function() {
     /*
     $("#game_canvas").prependTo("body");
     $("#game_canvas").css('position', 'absolute');
@@ -34,7 +47,7 @@ function OBJLoader(gl, gameCanvas) {
     animFrames = 0;
     everythingInitalized = false;
 
-    //this.showLoading();
+    this.showLoading();
 
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'planet3.obj', '/objects');
