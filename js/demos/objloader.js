@@ -97,10 +97,10 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.useProgram(shaderProgram);
 
-    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "a_vertexPosition");
     gl.enableVertexAttribArray(vertexPositionAttribute);
 
-    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "a_textureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
 
     gl.clearColor(0, 0, 0, 0);
@@ -207,7 +207,7 @@ function OBJLoader(gl, gameCanvas) {
 
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures);
-      gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+      gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffers.bufferIndices);
       this.setMatrixUniforms();
@@ -303,10 +303,10 @@ function OBJLoader(gl, gameCanvas) {
   };
 
   this.setMatrixUniforms = function() {
-    var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    var pUniform = gl.getUniformLocation(shaderProgram, "u_PMatrix");
     gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.flatten()));
 
-    var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    var mvUniform = gl.getUniformLocation(shaderProgram, "u_MVMatrix");
     gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
   };
 
