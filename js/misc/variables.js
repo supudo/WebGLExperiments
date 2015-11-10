@@ -16,6 +16,7 @@ var availableDemos = [
 var demoIndex = 0;
 var animatationFrameID;
 
+var globalDebug = true;
 var logCalls = true;
 var logInfo = false;
 var glDebug = false;

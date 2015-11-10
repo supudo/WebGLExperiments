@@ -7,7 +7,7 @@ function OBJLoader(gl, gameCanvas) {
   var animFrames;
   var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
-  var vertexPositionAttribute, textureCoordAttribute;
+  var vertexPositionAttribute, textureCoordAttribute, colorLocation;
   var mvMatrixStack = [];
   var glBuffers = [];
 
@@ -186,8 +186,8 @@ function OBJLoader(gl, gameCanvas) {
               textures.push(this.putTexture(texImages.dissolve[ti]));
           }
         }
-        faceBuffers.textures = textures;
-        faceBuffers.textures = this.putTexture(texImages.density[0]);
+        faceBuffers.textures = [];
+        faceBuffers.textures.push.apply(faceBuffers.textures, textures);
 
         glBuffers.push(faceBuffers);
       }
@@ -225,9 +225,11 @@ function OBJLoader(gl, gameCanvas) {
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferTextures);
       gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures);
-      gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
+      for (var j=0; j<faceBuffers.textures.length; j++) {
+        gl.activeTexture(gl.TEXTURE0 + j);
+        gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures[j]);
+        gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
+      }
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffers.bufferIndices);
       this.setMatrixUniforms();

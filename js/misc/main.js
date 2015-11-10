@@ -2,7 +2,7 @@ var currentDemo = null;
 var g_fpsCounter = null;
 
 // WebGL Inspector fix
-//setDemo(8);
+setDemo(8);
 
 document.onkeydown = gameUI_KeyDown;
 document.onkeyup = gameUI_KeyUp;
@@ -37,7 +37,7 @@ function startGame(demoIndex) {
   gameCanvas.width = gameCanvasJQ.parent().width();
   gameCanvas.height = gameCanvasJQ.parent().height();
   gl = getWebGLContext(gameCanvas);
-  if (glDebug)
+  if (globalDebug)
     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, logAndValidate);
 
   if (!gl)
