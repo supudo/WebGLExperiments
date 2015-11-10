@@ -1,4 +1,12 @@
-// https://en.wikipedia.org/wiki/Wavefront_.obj_file#File_format
+/*
+ *
+ * https://en.wikipedia.org/wiki/Wavefront_.obj_file#File_format
+ * http://www.martinreddy.net/gfx/3d/OBJ.spec
+ * http://paulbourke.net/dataformats/mtl/
+ * http://web.cse.ohio-state.edu/~hwshen/581/Site/Lab3_files/Labhelp_Obj_parser.htm
+ *
+ */
+
 'use strict';
 
 function WebGLObjLoader(gl) {
@@ -28,30 +36,61 @@ function WebGLObjLoader(gl) {
   var polygonalFaces = [];
 
   var regex_comment = /^#\s/;
-  var regex_objTitle = /^o\s/;
-  var regex_geometricVertices = /^v\s/;
-  var regex_textureCoordinates = /^vt\s/;
-  var regex_vertexNormals = /^vn\s/;
-  var regex_spaceVertices = /^vp\s/;
-  var regex_polygonalFaces = /^f\s/;
-  var regex_polygonalFacesSingle = "/";
-  var regex_materialFile = /^mtllib\s/;
   var regex_whiteSpace = /\s+/;
+
+  // current object name
+  var regex_objTitle = /^o\s/;
+  // vertex coordinates
+  var regex_geometricVertices = /^v\s/;
+  // texture coordinates
+  var regex_textureCoordinates = /^vt\s/;
+  // normals
+  var regex_vertexNormals = /^vn\s/;
+  // space vertices
+  var regex_spaceVertices = /^vp\s/;
+  // polygon faces
+  var regex_polygonalFaces = /^f\s/;
+  // face separation
+  var regex_polygonalFacesSingle = "/";
+  // material file
+  var regex_materialFile = /^mtllib\s/;
+  // material name for the current object
   var regex_useMaterial = /^usemtl\s/;
 
   var regex_materialNew = /^newmtl\s/;
-  var regex_materialAmbient = /^Ka\s/;
-  var regex_materialDiffuse = /^Kd\s/;
-  var regex_materialSpecular = /^Ks\s/;
-  var regex_materialSpecularExp = /^Ns\s/;
+  // To specify the ambient reflectivity of the current material, you can use the "Ka" statement,
+  // the "Ka spectral" statement, or the "Ka xyz" statement. 
+  var regex_materialAmbientColor = /^Ka\s/;
+  // To specify the diffuse reflectivity of the current material, you can use the "Kd" statement,
+  // the "Kd spectral" statement, or the "Kd xyz" statement. 
+  var regex_materialDiffuseColor = /^Kd\s/;
+  // To specify the specular reflectivity of the current material, you can use the "Ks" statement,
+  // the "Ks spectral" statement, or the "Ks xyz" statement. 
+  var regex_materialSpecularColor = /^Ks\s/;
+  // Specifies the specular exponent for the current material. This defines the focus of the specular highlight. 
+  var regex_materialShininess = /^Ns\s/;
+  // Specifies the dissolve for the current material.  Tr or d, depending on the formats.
   var regex_materialTransperant1 = /^Tr\s/;
   var regex_materialTransperant2 = /^d\s/;
+  // Specifies the optical density for the surface. This is also known as index of refraction. 
   var regex_materialOpticalDensity = /^Ni\s/;
+  // The "illum" statement specifies the illumination model to use in the material.
+  // Illumination models are mathematical equations that represent various material lighting and shading effects. 
   var regex_materialIllumination = /^illum\s/;
+  // Specifies that a color texture file or a color procedural texture file is applied to the ambient reflectivity of the material.
+  // During rendering, the "map_Ka" value is multiplied by the "Ka" value. 
   var regex_materialTextureAmbient = /^map_Ka\s/;
+  // Specifies that a color texture file or color procedural texture file is linked to the diffuse reflectivity of the material.
+  // During rendering, the map_Kd value is multiplied by the Kd value. 
   var regex_materialTextureDensity = /^map_Kd\s/;
+  // Specifies that a color texture file or color procedural texture file is linked to the specular reflectivity of the material.
+  // During rendering, the map_Ks value is multiplied by the Ks value. 
   var regex_materialTextureSpecular = /^map_Ks\s/;
+  // Specifies that a scalar texture file or scalar procedural texture file is linked to the specular exponent of the material.
+  // During rendering, the map_Ns value is multiplied by the Ns value. 
   var regex_materialTextureSpecularExp = /^map_Ns\s/;
+  // Specifies that a scalar texture file or scalar procedural texture file is linked to the dissolve of the material.
+  // During rendering, the map_d value is multiplied by the d value. 
   var regex_materialTextureDissolve = /^map_d\s/;
 
   var illuminationModes = [
@@ -105,8 +144,8 @@ function WebGLObjLoader(gl) {
           allMaterialImages.push(objImagePath + '/' + mat.textures.specular[j].image);
         }
         
-        for (var j=0; j<mat.textures.specularExp.length; j++) {
-          allMaterialImages.push(objImagePath + '/' + mat.textures.specularExp[j].image);
+        for (var j=0; j<mat.textures.shininess.length; j++) {
+          allMaterialImages.push(objImagePath + '/' + mat.textures.shininess[j].image);
         }
         
         for (var j=0; j<mat.textures.dissolve.length; j++) {
@@ -241,7 +280,7 @@ function WebGLObjLoader(gl) {
         singleMaterial.ambient = [];
         singleMaterial.diffuse = [];
         singleMaterial.specular = [];
-        singleMaterial.specularExp = [];
+        singleMaterial.shininess = [];
         singleMaterial.transparent = [];
         singleMaterial.opticalDensity = -1.0;
         singleMaterial.illumination = -1.0;
@@ -249,20 +288,20 @@ function WebGLObjLoader(gl) {
         singleMaterial.textures.ambient = [];
         singleMaterial.textures.density = [];
         singleMaterial.textures.specular = [];
-        singleMaterial.textures.specularExp = [];
+        singleMaterial.textures.shininess = [];
         singleMaterial.textures.dissolve = [];
 
         objMaterials.push(singleMaterial);
       }
 
-      if (regex_materialAmbient.test(singleLine))
+      if (regex_materialAmbientColor.test(singleLine))
         singleMaterial.ambient.push.apply(singleMaterial.ambient, lineElements);
-      else if (regex_materialDiffuse.test(singleLine))
+      else if (regex_materialDiffuseColor.test(singleLine))
         singleMaterial.diffuse.push.apply(singleMaterial.diffuse, lineElements);
-      else if (regex_materialSpecular.test(singleLine))
+      else if (regex_materialSpecularColor.test(singleLine))
         singleMaterial.specular.push.apply(singleMaterial.specular, lineElements);
-      else if (regex_materialSpecularExp.test(singleLine))
-        singleMaterial.specularExp.push.apply(singleMaterial.specularExp, lineElements);
+      else if (regex_materialShininess.test(singleLine))
+        singleMaterial.shininess.push.apply(singleMaterial.shininess, lineElements);
       else if (regex_materialTransperant1.test(singleLine) || regex_materialTransperant2.test(singleLine))
         singleMaterial.transparent.push.apply(singleMaterial.transparent, lineElements);
       else if (regex_materialOpticalDensity.test(singleLine))
@@ -276,7 +315,7 @@ function WebGLObjLoader(gl) {
       else if (regex_materialTextureSpecular.test(singleLine))
         singleMaterial.textures.specular.push(this.parseTexture(lineElements.join(' ')));
       else if (regex_materialTextureSpecularExp.test(singleLine))
-        singleMaterial.textures.specularExp.push(this.parseTexture(lineElements.join(' ')));
+        singleMaterial.textures.shininess.push(this.parseTexture(lineElements.join(' ')));
       else if (regex_materialTextureDissolve.test(singleLine))
         singleMaterial.textures.dissolve.push(this.parseTexture(lineElements.join(' ')));
 
@@ -284,7 +323,7 @@ function WebGLObjLoader(gl) {
           (singleMaterial.textures.ambient && singleMaterial.textures.ambient.length > 0) ||
           (singleMaterial.textures.density && singleMaterial.textures.density.length > 0) ||
           (singleMaterial.textures.specular && singleMaterial.textures.specular.length > 0) ||
-          (singleMaterial.textures.specularExp && singleMaterial.textures.specularExp.length > 0) ||
+          (singleMaterial.textures.shininess && singleMaterial.textures.shininess.length > 0) ||
           (singleMaterial.textures.dissolve && singleMaterial.textures.dissolve.length > 0)
          )
         singleMaterial.hasTextureImages = true;
@@ -364,9 +403,9 @@ function WebGLObjLoader(gl) {
         this.objScene.materials[i].textures.specular[j].loadedImage = objTextureImages[img];
       }
       
-      for (var j=0; j<mat.textures.specularExp.length; j++) {
-        img = mat.textures.specularExp[j].image;
-        this.objScene.materials[i].textures.specularExp[j].loadedImage = objTextureImages[img];
+      for (var j=0; j<mat.textures.shininess.length; j++) {
+        img = mat.textures.shininess[j].image;
+        this.objScene.materials[i].textures.shininess[j].loadedImage = objTextureImages[img];
       }
       
       for (var j=0; j<mat.textures.dissolve.length; j++) {

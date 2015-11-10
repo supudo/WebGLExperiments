@@ -187,9 +187,9 @@ function OBJLoader(gl, gameCanvas) {
             if (texImages.specular[ti])
               textures.push(this.putTexture(texImages.specular[ti]));
           }
-          for (var ti=0; ti<texImages.specularExp.length; ti++) {
-            if (texImages.specularExp[ti])
-              textures.push(this.putTexture(texImages.specularExp[ti]));
+          for (var ti=0; ti<texImages.shininess.length; ti++) {
+            if (texImages.shininess[ti])
+              textures.push(this.putTexture(texImages.shininess[ti]));
           }
           for (var ti=0; ti<texImages.dissolve.length; ti++) {
             if (texImages.dissolve[ti])
@@ -259,7 +259,7 @@ function OBJLoader(gl, gameCanvas) {
 
   this.getMaterialTextureImage = function(materialID) {
     var textureImages = {};
-    var ambient, density, specular, specularExp, dissolve;
+    var ambient, density, specular, shininess, dissolve;
     for (var i=0; i<objLoader.objScene.materials.length; i++) {
       var mat = objLoader.objScene.materials[i];
       if (mat.id == materialID) {
@@ -281,10 +281,10 @@ function OBJLoader(gl, gameCanvas) {
             specular.push(mat.textures.specular[0].loadedImage);
           }
         }
-        if (mat.textures.specularExp) {
-          specularExp = [];
-          for (var j=0; j<mat.textures.specularExp.length; j++) {
-            specularExp.push(mat.textures.specularExp[0].loadedImage);
+        if (mat.textures.shininess) {
+          shininess = [];
+          for (var j=0; j<mat.textures.shininess.length; j++) {
+            shininess.push(mat.textures.shininess[0].loadedImage);
           }
         }
         if (mat.textures.dissolve) {
@@ -298,7 +298,7 @@ function OBJLoader(gl, gameCanvas) {
     textureImages.ambient = ambient;
     textureImages.density = density;
     textureImages.specular = specular;
-    textureImages.specularExp = specularExp;
+    textureImages.shininess = shininess;
     textureImages.dissolve = dissolve;
     return textureImages;
   };
@@ -311,7 +311,7 @@ function OBJLoader(gl, gameCanvas) {
       hasImages = true;
     else if (materialTextures.specular && materialTextures.specular.length)
       hasImages = true;
-    else if (materialTextures.specularExp && materialTextures.specularExp.length)
+    else if (materialTextures.shininess && materialTextures.shininess.length)
       hasImages = true;
     else if (materialTextures.dissolve && materialTextures.dissolve.length)
       hasImages = true;
