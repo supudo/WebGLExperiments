@@ -7,7 +7,8 @@ function OBJLoader(gl, gameCanvas) {
   var animFrames;
   var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
-  var vertexPositionAttribute, textureCoordAttribute, vertexNormalAttribute;
+  var attributeVertexPosition, attributeTextureCoord, attributeVertexNormal;
+  var uniformAmbientColor, uniformLightingDirection, uniformDirectionalColor;
   var mvMatrixStack = [];
   var glBuffers = [];
 
@@ -15,6 +16,7 @@ function OBJLoader(gl, gameCanvas) {
   var lastSceneUpdateTime = 0;
 
   var mvMatrix, perspectiveMatrix;
+  var currentScene;
 
   //
   // Public =================================================
@@ -51,8 +53,8 @@ function OBJLoader(gl, gameCanvas) {
 
     objLoader = new WebGLObjLoader(gl);
     objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
-    //objLoader.parseObject('../../objects', 'robot.obj', '/objects');
-    if (objLoader.objScene.objHasTextureImages)
+    currentScene = objLoader.objScene;
+    if (currentScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
       this.imageTexturesLoaded().bind(this);
@@ -117,14 +119,18 @@ function OBJLoader(gl, gameCanvas) {
 
     gl.useProgram(shaderProgram);
 
-    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "a_vertexPosition");
-    gl.enableVertexAttribArray(vertexPositionAttribute);
+    attributeVertexPosition = gl.getAttribLocation(shaderProgram, "a_vertexPosition");
+    gl.enableVertexAttribArray(attributeVertexPosition);
 
-    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "a_textureCoord");
-    gl.enableVertexAttribArray(textureCoordAttribute);
+    attributeTextureCoord = gl.getAttribLocation(shaderProgram, "a_textureCoord");
+    gl.enableVertexAttribArray(attributeTextureCoord);
 
-    vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "a_vertexNormal");
-    gl.enableVertexAttribArray(vertexNormalAttribute);
+    attributeVertexNormal = gl.getAttribLocation(shaderProgram, "a_vertexNormal");
+    gl.enableVertexAttribArray(attributeVertexNormal);
+
+    uniformAmbientColor = gl.getUniformLocation(shaderProgram, "u_ambientColor");
+    uniformLightingDirection = gl.getUniformLocation(shaderProgram, "u_lightingDirection");
+    uniformDirectionalColor = gl.getUniformLocation(shaderProgram, "u_directionalColor");
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -133,16 +139,21 @@ function OBJLoader(gl, gameCanvas) {
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
+
+    printJSONData(currentScene);
   };
 
   this.initBuffersAndTextures = function() {
     glBuffers = [];
-    for (var i=0; i<objLoader.objScene.models.length; i++) {
-      var model = objLoader.objScene.models[i];
+    for (var i=0; i<currentScene.models.length; i++) {
+      var model = currentScene.models[i];
       for (var j=0; j<model.faces.length; j++) {
         var face = model.faces[j];
         var faceBuffers = {};
 
+        faceBuffers.material = this.getMaterialByID(face.materialID);
+
+        // vertices
         var bufferVertices = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
         var vv = [];
@@ -154,11 +165,13 @@ function OBJLoader(gl, gameCanvas) {
         faceBuffers.bufferVertices = bufferVertices;
         faceBuffers.verticesCount = face.verts.length;
 
+        // normals
         var bufferNormals = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferNormals);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(face.normals), gl.STATIC_DRAW);
         faceBuffers.bufferNormals = bufferNormals;
 
+        // textures & colors
         if (face.textures && face.textures.length > 0) {
           var bufferTextures = gl.createBuffer();
           gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
@@ -174,11 +187,13 @@ function OBJLoader(gl, gameCanvas) {
           faceBuffers.bufferTextures = bufferTextures;
         }
 
+        // indices
         var bufferIndices = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferIndices);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(face.indices), gl.STATIC_DRAW);
         faceBuffers.bufferIndices = bufferIndices;
 
+        // texture images
         var textures = [];
         var texImages = this.getMaterialTextureImage(face.materialID);
         if (this.hasMaterialImages(texImages)) {
@@ -238,19 +253,34 @@ function OBJLoader(gl, gameCanvas) {
       var faceBuffers = glBuffers[i];
 
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferVertices);
-      gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(attributeVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferTextures);
-      gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(attributeTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferNormals);
-      gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(attributeVertexNormal, 3, gl.FLOAT, false, 0, 0);
 
       for (var j=0; j<faceBuffers.textures.length; j++) {
         gl.activeTexture(gl.TEXTURE0 + j);
         gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures[j]);
         gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
       }
+      
+      gl.uniform3f(
+        uniformAmbientColor, 
+        faceBuffers.material.ambient[0],
+        faceBuffers.material.ambient[1],
+        faceBuffers.material.ambient[2]
+      );
+
+      var lightingDirection = [-0.25, -0.25, -1.0];
+      var adjustedLD = vec3.create();
+      vec3.normalize(lightingDirection, adjustedLD);
+      vec3.scale(adjustedLD, -1);
+      gl.uniform3fv(uniformLightingDirection, adjustedLD);
+
+      gl.uniform3f(uniformDirectionalColor, 0.8, 0.8, 0.8);
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffers.bufferIndices);
       this.setMatrixUniforms();
@@ -268,11 +298,20 @@ function OBJLoader(gl, gameCanvas) {
     lastSceneUpdateTime = currentTime;
   };
 
+  this.getMaterialByID = function(materialID) {
+    var mat = null;
+    for (var i=0; i<currentScene.materials.length; i++) {
+      if (currentScene.materials[i].id == materialID)
+        mat = currentScene.materials[i];
+    }
+    return mat;
+  };
+
   this.getMaterialTextureImage = function(materialID) {
     var textureImages = {};
     var ambient, density, specular, shininess, dissolve;
-    for (var i=0; i<objLoader.objScene.materials.length; i++) {
-      var mat = objLoader.objScene.materials[i];
+    for (var i=0; i<currentScene.materials.length; i++) {
+      var mat = currentScene.materials[i];
       if (mat.id == materialID) {
         if (mat.textures.ambient) {
           ambient = [];
@@ -352,10 +391,16 @@ function OBJLoader(gl, gameCanvas) {
     var mvUniform = gl.getUniformLocation(shaderProgram, "u_MVMatrix");
     gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
 
-    var normalMatrix = mvMatrix.inverse();
-    normalMatrix = normalMatrix.transpose();
+    //var normalMatrix = mvMatrix.inverse();
+    //normalMatrix = normalMatrix.transpose();
+    //var nUniform = gl.getUniformLocation(shaderProgram, "u_NormalMatrix");
+    //gl.uniformMatrix4fv(nUniform, false, new Float32Array(normalMatrix.flatten()));
+
+    var normalMatrix = mat3.create();
+    mat4.toInverseMat3(mvMatrix, normalMatrix);
+    mat3.transpose(normalMatrix);
     var nUniform = gl.getUniformLocation(shaderProgram, "u_NormalMatrix");
-    gl.uniformMatrix4fv(nUniform, false, new Float32Array(normalMatrix.flatten()));
+    gl.uniformMatrix3fv(nUniform, false, normalMatrix);
   };
 
   this.mvPushMatrix = function(m) {

@@ -5,6 +5,7 @@
  * http://paulbourke.net/dataformats/mtl/
  * http://web.cse.ohio-state.edu/~hwshen/581/Site/Lab3_files/Labhelp_Obj_parser.htm
  * http://www.fileformat.info/format/material/
+ * http://www.mathworks.com/matlabcentral/fileexchange/27982-wavefront-obj-toolbox/content/help%20file%20format/MTL_format.html
  *
  */
 
@@ -58,7 +59,20 @@ function WebGLObjLoader(gl) {
   // material name for the current object
   var regex_useMaterial = /^usemtl\s/;
 
+  // material
   var regex_materialNew = /^newmtl\s/;
+
+  /*
+   * During rendering, the Ka, Kd, and Ks values and the map_Ka, map_Kd, and 
+   * map_Ks values are blended according to the following formula:
+   * 
+   * result_color=tex_color(tv)*decal(tv)+mtl_color*(1.0-decal(tv))
+   * 
+   * where tv is the texture vertex.
+   * 
+   * "result_color" is the blended Ka, Kd, and Ks values.
+   */
+
   // To specify the ambient reflectivity of the current material, you can use the "Ka" statement,
   // the "Ka spectral" statement, or the "Ka xyz" statement. 
   var regex_materialAmbientColor = /^Ka\s/;
