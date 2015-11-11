@@ -7,7 +7,7 @@ function OBJLoader(gl, gameCanvas) {
   var animFrames;
   var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
-  var vertexPositionAttribute, textureCoordAttribute;
+  var vertexPositionAttribute, textureCoordAttribute, vertexNormalAttribute;
   var mvMatrixStack = [];
   var glBuffers = [];
 
@@ -123,6 +123,9 @@ function OBJLoader(gl, gameCanvas) {
     textureCoordAttribute = gl.getAttribLocation(shaderProgram, "a_textureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
 
+    vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "a_vertexNormal");
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -150,6 +153,11 @@ function OBJLoader(gl, gameCanvas) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
         faceBuffers.bufferVertices = bufferVertices;
         faceBuffers.verticesCount = face.verts.length;
+
+        var bufferNormals = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferNormals);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(face.normals), gl.STATIC_DRAW);
+        faceBuffers.bufferNormals = bufferNormals;
 
         if (face.textures && face.textures.length > 0) {
           var bufferTextures = gl.createBuffer();
@@ -234,6 +242,9 @@ function OBJLoader(gl, gameCanvas) {
 
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferTextures);
       gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferNormals);
+      gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
       for (var j=0; j<faceBuffers.textures.length; j++) {
         gl.activeTexture(gl.TEXTURE0 + j);
@@ -340,6 +351,11 @@ function OBJLoader(gl, gameCanvas) {
 
     var mvUniform = gl.getUniformLocation(shaderProgram, "u_MVMatrix");
     gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
+
+    var normalMatrix = mvMatrix.inverse();
+    normalMatrix = normalMatrix.transpose();
+    var nUniform = gl.getUniformLocation(shaderProgram, "u_NormalMatrix");
+    gl.uniformMatrix4fv(nUniform, false, new Float32Array(normalMatrix.flatten()));
   };
 
   this.mvPushMatrix = function(m) {

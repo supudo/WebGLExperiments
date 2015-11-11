@@ -4,6 +4,7 @@
  * http://www.martinreddy.net/gfx/3d/OBJ.spec
  * http://paulbourke.net/dataformats/mtl/
  * http://web.cse.ohio-state.edu/~hwshen/581/Site/Lab3_files/Labhelp_Obj_parser.htm
+ * http://www.fileformat.info/format/material/
  *
  */
 
@@ -170,7 +171,7 @@ function WebGLObjLoader(gl) {
     var geometricVerticesCountTotal = 0;
     var textureCoordinatesCountTotal = 0;
     var normalVerticesCountTotal = 0;
-    var indicesCounter = 0;
+    var indicesCounter = 0, indicesCounterTotal = 0;
     for (var i=0; i<objLines.length; i++) {
       var singleLine = objLines[i];
       var lineElements = singleLine.split(regex_whiteSpace);
@@ -187,6 +188,7 @@ function WebGLObjLoader(gl) {
           singleModel.geometricVerticesCount = 0;
           singleModel.textureCoordinatesCount = 0;
           singleModel.normalVerticesCount = 0;
+          singleModel.indicesCount = 0;
           objModels.push(singleModel);
         }
       }
@@ -210,7 +212,7 @@ function WebGLObjLoader(gl) {
         currentMaterial.indicesCount = 0;
         currentMaterial.verts = [];
         currentMaterial.textures = [];
-        currentMaterial.norms = [];
+        currentMaterial.normals = [];
         currentMaterial.indices = [];
         currentMaterial.solidColor = [100, 100, 100];
         indicesCounter = 0;
@@ -240,15 +242,18 @@ function WebGLObjLoader(gl) {
           }
 
           var n_idx = (face[2] - 1) * 3;
-          currentMaterial.norms.push(vertexNormals[n_idx + 0]);
-          currentMaterial.norms.push(vertexNormals[n_idx + 1]);
-          currentMaterial.norms.push(vertexNormals[n_idx + 2]);
+          currentMaterial.normals.push(vertexNormals[n_idx + 0]);
+          currentMaterial.normals.push(vertexNormals[n_idx + 1]);
+          currentMaterial.normals.push(vertexNormals[n_idx + 2]);
           normalVerticesCountTotal += 3;
           singleModel.normalVerticesCount += 3;
+          singleModel.indicesCount += 1;
           currentMaterial.normalVerticesCount += 3;
+          currentMaterial.indicesCount += 1;
 
           currentMaterial.indices.push(indicesCounter);
           indicesCounter += 1;
+          indicesCounterTotal += 1;
         }
       }
     }
@@ -256,6 +261,7 @@ function WebGLObjLoader(gl) {
     this.objScene.objTotalCountGeometricVertices = geometricVerticesCountTotal;
     this.objScene.objTotalCountTextureCoordinates = textureCoordinatesCountTotal;
     this.objScene.objTotalCountNormalVertices = normalVerticesCountTotal;
+    this.objScene.objTotalCountIndices = indicesCounterTotal;
     this.sortModels(objModels);
     this.objScene.models = objModels;
     this.objScene.materials = objMaterials;
