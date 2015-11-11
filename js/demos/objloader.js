@@ -53,12 +53,13 @@ function OBJLoader(gl, gameCanvas) {
     this.showLoading();
 
     objLoader = new WebGLObjLoader(gl);
-    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
+    //objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
+    objLoader.parseObject('../../objects', 'stanga_logo.obj', '/objects');
     currentScene = objLoader.objScene;
     if (currentScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
     else
-      this.imageTexturesLoaded().bind(this);
+      this.imageTexturesLoaded();
   };
    
   this.changeSettings = function() {
@@ -142,7 +143,7 @@ function OBJLoader(gl, gameCanvas) {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
 
-    //printJSONData(currentScene);
+    printJSONData(currentScene);
   };
 
   this.initBuffersAndTextures = function() {
@@ -181,13 +182,16 @@ function OBJLoader(gl, gameCanvas) {
           faceBuffers.bufferTextures = bufferTextures;
         }
         else {
-          var whiteTexture = gl.createTexture();
-          gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
-          var whitePixel = new Uint8Array([255, 255, 255, 255]);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
-          gl.bindTexture(gl.TEXTURE_2D, whiteTexture); 
-          faceBuffers.bufferTextures = bufferTextures;
-        }
+          var whiteCoords = [];
+          for (var i=0; i<100000; i++) {
+            whiteCoords.push(200 + i,  70 + i, 120 + i);
+            //colors.push(200,  70, 120);
+          }
+          var bufferWhite = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, bufferWhite);
+          gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(whiteCoords), gl.STATIC_DRAW);
+          faceBuffers.bufferTextures = bufferWhite;
+       }
 
         // indices
         var bufferIndices = gl.createBuffer();
@@ -196,6 +200,7 @@ function OBJLoader(gl, gameCanvas) {
         faceBuffers.bufferIndices = bufferIndices;
 
         // texture images
+        var hasTextures = false;
         var textures = [];
         var texImages = this.getMaterialTextureImage(face.materialID);
         if (this.hasMaterialImages(texImages)) {
@@ -221,8 +226,10 @@ function OBJLoader(gl, gameCanvas) {
               textures.push(this.putTexture(texImages.dissolve[ti]));
           }
         }
-        faceBuffers.textures = [];
-        faceBuffers.textures.push.apply(faceBuffers.textures, textures);
+        if (hasTextures) {
+          faceBuffers.textures = [];
+          faceBuffers.textures.push.apply(faceBuffers.textures, textures);
+        }
 
         glBuffers.push(faceBuffers);
       }
@@ -267,9 +274,16 @@ function OBJLoader(gl, gameCanvas) {
       gl.vertexAttribPointer(attributeVertexNormal, 3, gl.FLOAT, false, 0, 0);
 
       // textures
-      for (var j=0; j<faceBuffers.textures.length; j++) {
-        gl.activeTexture(gl.TEXTURE0 + j);
-        gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures[j]);
+      if (faceBuffers.textures && faceBuffers.textures.length > 0) {
+        for (var j=0; j<faceBuffers.textures.length; j++) {
+          gl.activeTexture(gl.TEXTURE0 + j);
+          gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures[j]);
+          gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
+        }
+      }
+      else {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures); 
         gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
       }
 
