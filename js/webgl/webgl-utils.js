@@ -30,7 +30,7 @@
  */
 "use strict";
 
-(function (root, factory) {
+(function(root, factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
     define([], factory);
@@ -41,7 +41,7 @@
       root[key] = lib[key];
     });
   }
-}(this, function () {
+}(this, function() {
 
   var topWindow = this;
 
@@ -116,7 +116,7 @@
     for (var ii = 0; ii < names.length; ++ii) {
       try {
         context = canvas.getContext(names[ii], opt_attribs);
-      } catch(e) {}  // eslint-disable-line
+      } catch (e) {} // eslint-disable-line
       if (context) {
         break;
       }
@@ -246,7 +246,7 @@
    * @memberOf module:webgl-utils
    */
   function createProgram(
-      gl, shaders, opt_attribs, opt_locations, opt_errorCallback) {
+    gl, shaders, opt_attribs, opt_locations, opt_errorCallback) {
     var errFn = opt_errorCallback || error;
     var program = gl.createProgram();
     shaders.forEach(function(shader) {
@@ -255,9 +255,9 @@
     if (opt_attribs) {
       obj_attrib.forEach(function(attrib, ndx) {
         gl.bindAttribLocation(
-            program,
-            opt_locations ? opt_locations[ndx] : ndx,
-            attrib);
+          program,
+          opt_locations ? opt_locations[ndx] : ndx,
+          attrib);
       });
     }
     gl.linkProgram(program);
@@ -265,12 +265,12 @@
     // Check the link status
     var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (!linked) {
-        // something went wrong with the link
-        var lastError = gl.getProgramInfoLog(program);
-        errFn("Error in program linking:" + lastError);
+      // something went wrong with the link
+      var lastError = gl.getProgramInfoLog(program);
+      errFn("Error in program linking:" + lastError);
 
-        gl.deleteProgram(program);
-        return null;
+      gl.deleteProgram(program);
+      return null;
     }
     return program;
   }
@@ -285,7 +285,7 @@
    * @return {WebGLShader} The created shader.
    */
   function createShaderFromScript(
-      gl, scriptId, opt_shaderType, opt_errorCallback) {
+    gl, scriptId, opt_shaderType, opt_errorCallback) {
     var shaderSource = "";
     var shaderType;
     var shaderScript = document.getElementById(scriptId);
@@ -305,8 +305,8 @@
     }
 
     return loadShader(
-        gl, shaderSource, opt_shaderType ? opt_shaderType : shaderType,
-        opt_errorCallback);
+      gl, shaderSource, opt_shaderType ? opt_shaderType : shaderType,
+      opt_errorCallback);
   }
 
   var defaultShaderType = [
@@ -330,11 +330,11 @@
    * @memberOf module:webgl-utils
    */
   function createProgramFromScripts(
-      gl, shaderScriptIds, opt_attribs, opt_locations, opt_errorCallback) {
+    gl, shaderScriptIds, opt_attribs, opt_locations, opt_errorCallback) {
     var shaders = [];
     for (var ii = 0; ii < shaderScriptIds.length; ++ii) {
       shaders.push(createShaderFromScript(
-          gl, shaderScriptIds[ii], gl[defaultShaderType[ii]], opt_errorCallback));
+        gl, shaderScriptIds[ii], gl[defaultShaderType[ii]], opt_errorCallback));
     }
     return createProgram(gl, shaders, opt_attribs, opt_locations, opt_errorCallback);
   }
@@ -355,11 +355,11 @@
    * @memberOf module:webgl-utils
    */
   function createProgramFromSources(
-      gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
+    gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
     var shaders = [];
     for (var ii = 0; ii < shaderSources.length; ++ii) {
       shaders.push(loadShader(
-          gl, shaderSources[ii], gl[defaultShaderType[ii]], opt_errorCallback));
+        gl, shaderSources[ii], gl[defaultShaderType[ii]], opt_errorCallback));
     }
     return createProgram(gl, shaders, opt_attribs, opt_locations, opt_errorCallback);
   }
@@ -368,8 +368,8 @@
    * Returns the corresponding bind point for a given sampler type
    */
   function getBindPointForSamplerType(gl, type) {
-    if (type === gl.SAMPLER_2D)   return gl.TEXTURE_2D;        // eslint-disable-line
-    if (type === gl.SAMPLER_CUBE) return gl.TEXTURE_CUBE_MAP;  // eslint-disable-line
+    if (type === gl.SAMPLER_2D) return gl.TEXTURE_2D; // eslint-disable-line
+    if (type === gl.SAMPLER_CUBE) return gl.TEXTURE_CUBE_MAP; // eslint-disable-line
   }
 
   /**
@@ -468,8 +468,8 @@
       }
       if (type === gl.BOOL_VEC4) {
         return function(v) {
-          gl.uniform4iv(location, v); }
-        ;
+          gl.uniform4iv(location, v);
+        };
       }
       if (type === gl.FLOAT_MAT2) {
         return function(v) {
@@ -513,7 +513,7 @@
       throw ("unknown type: 0x" + type.toString(16)); // we should never get here.
     }
 
-    var uniformSetters = { };
+    var uniformSetters = {};
     var numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
     for (var ii = 0; ii < numUniforms; ++ii) {
@@ -629,16 +629,15 @@
    * @memberOf module:webgl-utils
    */
   function createAttributeSetters(gl, program) {
-    var attribSetters = {
-    };
+    var attribSetters = {};
 
     function createAttribSetter(index) {
       return function(b) {
-          gl.bindBuffer(gl.ARRAY_BUFFER, b.buffer);
-          gl.enableVertexAttribArray(index);
-          gl.vertexAttribPointer(
-              index, b.numComponents || b.size, b.type || gl.FLOAT, b.normalize || false, b.stride || 0, b.offset || 0);
-        };
+        gl.bindBuffer(gl.ARRAY_BUFFER, b.buffer);
+        gl.enableVertexAttribArray(index);
+        gl.vertexAttribPointer(
+          index, b.numComponents || b.size, b.type || gl.FLOAT, b.normalize || false, b.stride || 0, b.offset || 0);
+      };
     }
 
     var numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
@@ -748,7 +747,7 @@
    * @memberOf module:webgl-utils
    */
   function createProgramInfo(
-      gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
+    gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
     shaderSources = shaderSources.map(function(source) {
       var script = document.getElementById(source);
       return script ? script.text : source;
@@ -846,7 +845,7 @@
     var width = canvas.clientWidth;
     var height = canvas.clientHeight;
     if (canvas.width !== width ||
-        canvas.height !== height) {
+      canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
       return true;
@@ -868,7 +867,7 @@
     for (var ii = 0; ii < iframes.length; ++ii) {
       var iframe = iframes[ii];
       if (iframe.contentDocument === window.document) {
-        return iframe;  // eslint-disable-line
+        return iframe; // eslint-disable-line
       }
     }
   }
@@ -888,11 +887,11 @@
 
       var bounds = iframe.getBoundingClientRect();
       var isVisible = bounds.top < window.parent.innerHeight && bounds.bottom >= 0 &&
-                      bounds.left < window.parent.innerWidth && bounds.right >= 0;
+        bounds.left < window.parent.innerWidth && bounds.right >= 0;
 
       return isVisible && isFrameVisible(window.parent);
     } catch (e) {
-      return true;  // We got a security error?
+      return true; // We got a security error?
     }
   }
 
@@ -991,21 +990,39 @@
   }
 
   function getGLTypeForTypedArray(gl, typedArray) {
-    if (typedArray instanceof Int8Array)    { return gl.BYTE; }            // eslint-disable-line
-    if (typedArray instanceof Uint8Array)   { return gl.UNSIGNED_BYTE; }   // eslint-disable-line
-    if (typedArray instanceof Int16Array)   { return gl.SHORT; }           // eslint-disable-line
-    if (typedArray instanceof Uint16Array)  { return gl.UNSIGNED_SHORT; }  // eslint-disable-line
-    if (typedArray instanceof Int32Array)   { return gl.INT; }             // eslint-disable-line
-    if (typedArray instanceof Uint32Array)  { return gl.UNSIGNED_INT; }    // eslint-disable-line
-    if (typedArray instanceof Float32Array) { return gl.FLOAT; }           // eslint-disable-line
+    if (typedArray instanceof Int8Array) {
+      return gl.BYTE;
+    } // eslint-disable-line
+    if (typedArray instanceof Uint8Array) {
+      return gl.UNSIGNED_BYTE;
+    } // eslint-disable-line
+    if (typedArray instanceof Int16Array) {
+      return gl.SHORT;
+    } // eslint-disable-line
+    if (typedArray instanceof Uint16Array) {
+      return gl.UNSIGNED_SHORT;
+    } // eslint-disable-line
+    if (typedArray instanceof Int32Array) {
+      return gl.INT;
+    } // eslint-disable-line
+    if (typedArray instanceof Uint32Array) {
+      return gl.UNSIGNED_INT;
+    } // eslint-disable-line
+    if (typedArray instanceof Float32Array) {
+      return gl.FLOAT;
+    } // eslint-disable-line
     throw "unsupported typed array type";
   }
 
   // This is really just a guess. Though I can't really imagine using
   // anything else? Maybe for some compression?
   function getNormalizationForTypedArray(typedArray) {
-    if (typedArray instanceof Int8Array)    { return true; }  // eslint-disable-line
-    if (typedArray instanceof Uint8Array)   { return true; }  // eslint-disable-line
+    if (typedArray instanceof Int8Array) {
+      return true;
+    } // eslint-disable-line
+    if (typedArray instanceof Uint8Array) {
+      return true;
+    } // eslint-disable-line
     return false;
   }
 
@@ -1020,7 +1037,7 @@
     } else if (name.indexOf("color") >= 0) {
       numComponents = 4;
     } else {
-      numComponents = 3;  // position, normals, indices ...
+      numComponents = 3; // position, normals, indices ...
     }
 
     if (length % numComponents > 0) {
@@ -1105,10 +1122,10 @@
       var bufferName = mapping[attribName];
       var array = makeTypedArray(arrays[bufferName], bufferName);
       attribs[attribName] = {
-        buffer:        createBufferFromTypedArray(gl, array),
+        buffer: createBufferFromTypedArray(gl, array),
         numComponents: array.numComponents || guessNumComponentsFromName(bufferName),
-        type:          getGLTypeForTypedArray(gl, array),
-        normalize:     getNormalizationForTypedArray(array),
+        type: getGLTypeForTypedArray(gl, array),
+        normalize: getNormalizationForTypedArray(array),
       };
     });
     return attribs;
@@ -1298,7 +1315,7 @@
    * @memberOf module:webgl-utils
    */
   function createBuffersFromArrays(gl, arrays) {
-    var buffers = { };
+    var buffers = {};
     Object.keys(arrays).forEach(function(key) {
       var type = key === "indices" ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
       var array = makeTypedArray(arrays[key], name);
@@ -1402,8 +1419,8 @@
   }
 
   // All browsers that support WebGL support requestAnimationFrame
-  topWindow.requestAnimFrame = topWindow.requestAnimationFrame;       // just to stay backward compatible.
-  topWindow.cancelRequestAnimFrame = topWindow.cancelAnimationFrame;  // just to stay backward compatible.
+  topWindow.requestAnimFrame = topWindow.requestAnimationFrame; // just to stay backward compatible.
+  topWindow.cancelRequestAnimFrame = topWindow.cancelAnimationFrame; // just to stay backward compatible.
 
   return {
     createAugmentedTypedArray: createAugmentedTypedArray,

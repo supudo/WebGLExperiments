@@ -66,7 +66,7 @@ function WebGLObjLoader(gl) {
    * During rendering, the Ka, Kd, and Ks values and the map_Ka, map_Kd, and 
    * map_Ks values are blended according to the following formula:
    * 
-   * result_color=tex_color(tv)*decal(tv)+mtl_color*(1.0-decal(tv))
+   * result_color = tex_color(tv) * decal(tv) + mtl_color * (1.0 - decal(tv))
    * 
    * where tv is the texture vertex.
    * 
@@ -84,7 +84,7 @@ function WebGLObjLoader(gl) {
   var regex_materialSpecularColor = /^Ks\s/;
   // Specifies the specular exponent for the current material. This defines the focus of the specular highlight. 
   var regex_materialShininess = /^Ns\s/;
-  // Specifies the dissolve for the current material.  Tr or d, depending on the formats.
+  // Specifies the dissolve for the current material.  Tr or d, depending on the formats. Transperancy
   var regex_materialTransperant1 = /^Tr\s/;
   var regex_materialTransperant2 = /^d\s/;
   // Specifies the optical density for the surface. This is also known as index of refraction. 
@@ -301,7 +301,7 @@ function WebGLObjLoader(gl) {
         singleMaterial.diffuse = [];
         singleMaterial.specular = [];
         singleMaterial.shininess = [];
-        singleMaterial.transparent = [];
+        singleMaterial.transparent = 1.0; // init with no transparency
         singleMaterial.opticalDensity = -1.0;
         singleMaterial.illumination = -1.0;
         singleMaterial.textures = {};
@@ -323,7 +323,7 @@ function WebGLObjLoader(gl) {
       else if (regex_materialShininess.test(singleLine))
         singleMaterial.shininess.push.apply(singleMaterial.shininess, lineElements);
       else if (regex_materialTransperant1.test(singleLine) || regex_materialTransperant2.test(singleLine))
-        singleMaterial.transparent.push.apply(singleMaterial.transparent, lineElements);
+        singleMaterial.transparent = parseFloat(lineElements.join(' '));
       else if (regex_materialOpticalDensity.test(singleLine))
         singleMaterial.opticalDensity = lineElements[0];
       else if (regex_materialIllumination.test(singleLine))

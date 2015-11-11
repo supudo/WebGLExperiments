@@ -9,6 +9,7 @@ function OBJLoader(gl, gameCanvas) {
   var shaderProgram, shaderVertex, shaderFragment;
   var attributeVertexPosition, attributeTextureCoord, attributeVertexNormal;
   var uniformAmbientColor, uniformLightingDirection, uniformDirectionalColor;
+  var uniformAlpha;
   var mvMatrixStack = [];
   var glBuffers = [];
 
@@ -131,6 +132,7 @@ function OBJLoader(gl, gameCanvas) {
     uniformAmbientColor = gl.getUniformLocation(shaderProgram, "u_ambientColor");
     uniformLightingDirection = gl.getUniformLocation(shaderProgram, "u_lightingDirection");
     uniformDirectionalColor = gl.getUniformLocation(shaderProgram, "u_directionalColor");
+    uniformAlpha = gl.getUniformLocation(shaderProgram, "u_alpha");
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -140,7 +142,7 @@ function OBJLoader(gl, gameCanvas) {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
 
-    printJSONData(currentScene);
+    //printJSONData(currentScene);
   };
 
   this.initBuffersAndTextures = function() {
@@ -252,21 +254,39 @@ function OBJLoader(gl, gameCanvas) {
     for (var i=0; i<glBuffers.length; i++) {
       var faceBuffers = glBuffers[i];
 
+      // vertices
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferVertices);
       gl.vertexAttribPointer(attributeVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
+      // textures
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferTextures);
       gl.vertexAttribPointer(attributeTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
+      // normals
       gl.bindBuffer(gl.ARRAY_BUFFER, faceBuffers.bufferNormals);
       gl.vertexAttribPointer(attributeVertexNormal, 3, gl.FLOAT, false, 0, 0);
 
+      // textures
       for (var j=0; j<faceBuffers.textures.length; j++) {
         gl.activeTexture(gl.TEXTURE0 + j);
         gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures[j]);
         gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
       }
-      
+
+      // blending
+      if (faceBuffers.material.transparent < 1) {
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        gl.enable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+        gl.uniform1f(uniformAlpha, faceBuffers.material.transparent);
+      }
+      else {
+        gl.disable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+        gl.uniform1f(uniformAlpha, 1.0);
+      }
+
+      // Lightning
       gl.uniform3f(
         uniformAmbientColor, 
         faceBuffers.material.ambient[0],
@@ -282,8 +302,11 @@ function OBJLoader(gl, gameCanvas) {
 
       gl.uniform3f(uniformDirectionalColor, 0.8, 0.8, 0.8);
 
+      // Indices
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, faceBuffers.bufferIndices);
+      // uniforms, matrices
       this.setMatrixUniforms();
+      // draw
       gl.drawElements(gl.TRIANGLES, faceBuffers.verticesCount / 3, gl.UNSIGNED_SHORT, 0);
     }
 

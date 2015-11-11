@@ -1,6 +1,6 @@
 // https://github.com/frenchtoast747/webgl-obj-loader
 
-(function (scope, undefined) {
+(function(scope, undefined) {
   'use strict';
 
   var OBJ = {};
@@ -22,7 +22,7 @@
    *
    * @param {String} objectData a string representation of an OBJ file with newlines preserved.
    */
-  OBJ.Mesh = function (objectData) {
+  OBJ.Mesh = function(objectData) {
     /*
      The OBJ file format does a sort of compression when saving a model in a
      program like Blender. There are at least 3 sections (4 including textures)
@@ -82,7 +82,10 @@
      exists in the hashindices object, its corresponding value is the index of
      that group and is appended to the unpacked indices array.
      */
-    var verts = [], vertNormals = [], textures = [], unpacked = {};
+    var verts = [],
+      vertNormals = [],
+      textures = [],
+      unpacked = {};
     // unpacking stuff
     unpacked.verts = [];
     unpacked.norms = [];
@@ -123,74 +126,73 @@
           ['16/92/11', '14/101/22', '1/69/1'];
         */
         var quad = false;
-        for (var j = 0, eleLen = elements.length; j < eleLen; j++){
-            // Triangulating quads
-            // quad: 'f v0/t0/vn0 v1/t1/vn1 v2/t2/vn2 v3/t3/vn3/'
-            // corresponding triangles:
-            //      'f v0/t0/vn0 v1/t1/vn1 v2/t2/vn2'
-            //      'f v2/t2/vn2 v3/t3/vn3 v0/t0/vn0'
-            if(j === 3 && !quad) {
-                // add v2/t2/vn2 in again before continuing to 3
-                j = 2;
-                quad = true;
+        for (var j = 0, eleLen = elements.length; j < eleLen; j++) {
+          // Triangulating quads
+          // quad: 'f v0/t0/vn0 v1/t1/vn1 v2/t2/vn2 v3/t3/vn3/'
+          // corresponding triangles:
+          //      'f v0/t0/vn0 v1/t1/vn1 v2/t2/vn2'
+          //      'f v2/t2/vn2 v3/t3/vn3 v0/t0/vn0'
+          if (j === 3 && !quad) {
+            // add v2/t2/vn2 in again before continuing to 3
+            j = 2;
+            quad = true;
+          }
+          if (elements[j] in unpacked.hashindices) {
+            unpacked.indices.push(unpacked.hashindices[elements[j]]);
+          } else {
+            /*
+            Each element of the face line array is a vertex which has its
+            attributes delimited by a forward slash. This will separate
+            each attribute into another array:
+                '19/92/11'
+            becomes:
+                vertex = ['19', '92', '11'];
+            where
+                vertex[0] is the vertex index
+                vertex[1] is the texture index
+                vertex[2] is the normal index
+             Think of faces having Vertices which are comprised of the
+             attributes location (v), texture (vt), and normal (vn).
+             */
+            var vertex = elements[j].split('/');
+            /*
+             The verts, textures, and vertNormals arrays each contain a
+             flattend array of coordinates.
+             Because it gets confusing by referring to vertex and then
+             vertex (both are different in my descriptions) I will explain
+             what's going on using the vertexNormals array:
+             vertex[2] will contain the one-based index of the vertexNormals
+             section (vn). One is subtracted from this index number to play
+             nice with javascript's zero-based array indexing.
+             Because vertexNormal is a flattened array of x, y, z values,
+             simple pointer arithmetic is used to skip to the start of the
+             vertexNormal, then the offset is added to get the correct
+             component: +0 is x, +1 is y, +2 is z.
+             This same process is repeated for verts and textures.
+             */
+            // vertex position
+            unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 0]);
+            unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 1]);
+            unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 2]);
+            // vertex textures
+            if (textures.length) {
+              unpacked.textures.push(+textures[(vertex[1] - 1) * 2 + 0]);
+              unpacked.textures.push(+textures[(vertex[1] - 1) * 2 + 1]);
             }
-            if(elements[j] in unpacked.hashindices){
-                unpacked.indices.push(unpacked.hashindices[elements[j]]);
-            }
-            else{
-                /*
-                Each element of the face line array is a vertex which has its
-                attributes delimited by a forward slash. This will separate
-                each attribute into another array:
-                    '19/92/11'
-                becomes:
-                    vertex = ['19', '92', '11'];
-                where
-                    vertex[0] is the vertex index
-                    vertex[1] is the texture index
-                    vertex[2] is the normal index
-                 Think of faces having Vertices which are comprised of the
-                 attributes location (v), texture (vt), and normal (vn).
-                 */
-                var vertex = elements[ j ].split( '/' );
-                /*
-                 The verts, textures, and vertNormals arrays each contain a
-                 flattend array of coordinates.
-                 Because it gets confusing by referring to vertex and then
-                 vertex (both are different in my descriptions) I will explain
-                 what's going on using the vertexNormals array:
-                 vertex[2] will contain the one-based index of the vertexNormals
-                 section (vn). One is subtracted from this index number to play
-                 nice with javascript's zero-based array indexing.
-                 Because vertexNormal is a flattened array of x, y, z values,
-                 simple pointer arithmetic is used to skip to the start of the
-                 vertexNormal, then the offset is added to get the correct
-                 component: +0 is x, +1 is y, +2 is z.
-                 This same process is repeated for verts and textures.
-                 */
-                // vertex position
-                unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 0]);
-                unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 1]);
-                unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 2]);
-                // vertex textures
-                if (textures.length) {
-                  unpacked.textures.push(+textures[(vertex[1] - 1) * 2 + 0]);
-                  unpacked.textures.push(+textures[(vertex[1] - 1) * 2 + 1]);
-                }
-                // vertex normals
-                unpacked.norms.push(+vertNormals[(vertex[2] - 1) * 3 + 0]);
-                unpacked.norms.push(+vertNormals[(vertex[2] - 1) * 3 + 1]);
-                unpacked.norms.push(+vertNormals[(vertex[2] - 1) * 3 + 2]);
-                // add the newly created vertex to the list of indices
-                unpacked.hashindices[elements[j]] = unpacked.index;
-                unpacked.indices.push(unpacked.index);
-                // increment the counter
-                unpacked.index += 1;
-            }
-            if(j === 3 && quad) {
-                // add v0/t0/vn0 onto the second triangle
-                unpacked.indices.push( unpacked.hashindices[elements[0]]);
-            }
+            // vertex normals
+            unpacked.norms.push(+vertNormals[(vertex[2] - 1) * 3 + 0]);
+            unpacked.norms.push(+vertNormals[(vertex[2] - 1) * 3 + 1]);
+            unpacked.norms.push(+vertNormals[(vertex[2] - 1) * 3 + 2]);
+            // add the newly created vertex to the list of indices
+            unpacked.hashindices[elements[j]] = unpacked.index;
+            unpacked.indices.push(unpacked.index);
+            // increment the counter
+            unpacked.index += 1;
+          }
+          if (j === 3 && quad) {
+            // add v0/t0/vn0 onto the second triangle
+            unpacked.indices.push(unpacked.hashindices[elements[0]]);
+          }
         }
       }
     }
@@ -200,14 +202,14 @@
     this.indices = unpacked.indices;
   }
 
-  var Ajax = function(){
+  var Ajax = function() {
     // this is just a helper class to ease ajax calls
     var _this = this;
     this.xmlhttp = new XMLHttpRequest();
 
-    this.get = function(url, callback){
-      _this.xmlhttp.onreadystatechange = function(){
-        if(_this.xmlhttp.readyState === 4){
+    this.get = function(url, callback) {
+      _this.xmlhttp.onreadystatechange = function() {
+        if (_this.xmlhttp.readyState === 4) {
           callback(_this.xmlhttp.responseText, _this.xmlhttp.status);
         }
       };
@@ -233,7 +235,7 @@
    * @param {Object} meshes In case other meshes are loaded separately or if a previously declared variable is desired to be used, pass in a (possibly empty) json object of the pattern: { '<mesh_name>': OBJ.Mesh }
    *
    */
-  OBJ.downloadMeshes = function (nameAndURLs, completionCallback, meshes){
+  OBJ.downloadMeshes = function(nameAndURLs, completionCallback, meshes) {
     // the total number of meshes. this is used to implement "blocking"
     var semaphore = Object.keys(nameAndURLs).length;
     // if error is true, an alert will given
@@ -241,16 +243,15 @@
     // this is used to check if all meshes have been downloaded
     // if meshes is supplied, then it will be populated, otherwise
     // a new object is created. this will be passed into the completionCallback
-    if(meshes === undefined) meshes = {};
+    if (meshes === undefined) meshes = {};
     // loop over the mesh_name,url key,value pairs
-    for(var mesh_name in nameAndURLs){
-      if(nameAndURLs.hasOwnProperty(mesh_name)){
+    for (var mesh_name in nameAndURLs) {
+      if (nameAndURLs.hasOwnProperty(mesh_name)) {
         new Ajax().get(nameAndURLs[mesh_name], (function(name) {
-          return function (data, status) {
+          return function(data, status) {
             if (status === 200) {
               meshes[name] = new OBJ.Mesh(data);
-            }
-            else {
+            } else {
               error = true;
               console.error('An error has occurred and the mesh "' +
                 name + '" could not be downloaded.');
@@ -275,7 +276,7 @@
     }
   };
 
-  var _buildBuffer = function( gl, type, data, itemSize ){
+  var _buildBuffer = function(gl, type, data, itemSize) {
     var buffer = gl.createBuffer();
     var arrayView = type === gl.ARRAY_BUFFER ? Float32Array : Uint16Array;
     gl.bindBuffer(type, buffer);
@@ -359,14 +360,14 @@
    *     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.mesh.indexBuffer);
    *     gl.drawElements(gl.TRIANGLES, model.mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
    */
-  OBJ.initMeshBuffers = function( gl, mesh ){
+  OBJ.initMeshBuffers = function(gl, mesh) {
     mesh.normalBuffer = _buildBuffer(gl, gl.ARRAY_BUFFER, mesh.vertexNormals, 3);
     mesh.textureBuffer = _buildBuffer(gl, gl.ARRAY_BUFFER, mesh.textures, 2);
     mesh.vertexBuffer = _buildBuffer(gl, gl.ARRAY_BUFFER, mesh.vertices, 3);
     mesh.indexBuffer = _buildBuffer(gl, gl.ELEMENT_ARRAY_BUFFER, mesh.indices, 1);
   }
 
-  OBJ.deleteMeshBuffers = function( gl, mesh ){
+  OBJ.deleteMeshBuffers = function(gl, mesh) {
     gl.deleteBuffer(mesh.normalBuffer);
     gl.deleteBuffer(mesh.textureBuffer);
     gl.deleteBuffer(mesh.vertexBuffer);
