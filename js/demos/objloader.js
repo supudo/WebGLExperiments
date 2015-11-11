@@ -162,12 +162,7 @@ function OBJLoader(gl, gameCanvas) {
         // vertices
         var bufferVertices = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferVertices);
-        var vv = [];
-        for (var vi=0; vi<face.verts.length; vi++) {
-          var v = face.verts[vi];
-          vv.push(v);
-        }
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vv), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(face.verts), gl.STATIC_DRAW);
         faceBuffers.bufferVertices = bufferVertices;
         faceBuffers.verticesCount = face.verts.length;
 
