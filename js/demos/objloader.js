@@ -8,10 +8,12 @@ function OBJLoader(gl, gameCanvas) {
   var objLoader, everythingInitalized;
   var shaderProgram, shaderVertex, shaderFragment;
   var attributeVertexPosition, attributeTextureCoord, attributeVertexNormal;
+  var uniformColor;
   var uniformAmbientColor, uniformLightingDirection, uniformDirectionalColor;
   var uniformAlpha;
   var mvMatrixStack = [];
   var glBuffers = [];
+  var whiteColor = new Float32Array([1, 1, 1, 1]);
 
   var sceneRotation = 0.0;
   var lastSceneUpdateTime = 0;
@@ -54,7 +56,7 @@ function OBJLoader(gl, gameCanvas) {
 
     objLoader = new WebGLObjLoader(gl);
     //objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
-    objLoader.parseObject('../../objects', 'stanga_logo.obj', '/objects');
+    objLoader.parseObject('../../objects', 'text.obj', '/objects');
     currentScene = objLoader.objScene;
     if (currentScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
@@ -130,6 +132,7 @@ function OBJLoader(gl, gameCanvas) {
     attributeVertexNormal = gl.getAttribLocation(shaderProgram, "a_vertexNormal");
     gl.enableVertexAttribArray(attributeVertexNormal);
 
+    uniformColor = gl.getUniformLocation(shaderProgram, "u_color");
     uniformAmbientColor = gl.getUniformLocation(shaderProgram, "u_ambientColor");
     uniformLightingDirection = gl.getUniformLocation(shaderProgram, "u_lightingDirection");
     uniformDirectionalColor = gl.getUniformLocation(shaderProgram, "u_directionalColor");
@@ -143,7 +146,7 @@ function OBJLoader(gl, gameCanvas) {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
 
-    printJSONData(currentScene);
+    //printJSONData(currentScene);
   };
 
   this.initBuffersAndTextures = function() {
@@ -230,6 +233,22 @@ function OBJLoader(gl, gameCanvas) {
           faceBuffers.textures = [];
           faceBuffers.textures.push.apply(faceBuffers.textures, textures);
         }
+        else {
+          var whiteTexture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+          var solidColorTexture = [255, 255, 255, 255];
+          if (faceBuffers.material.diffuse && faceBuffers.material.diffuse.length > 0)
+            solidColorTexture = [
+              Math.round(faceBuffers.material.diffuse[0] * 255),
+              Math.round(faceBuffers.material.diffuse[1] * 255),
+              Math.round(faceBuffers.material.diffuse[2] * 255),
+              255
+            ];
+          var whitePixel = new Uint8Array(solidColorTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
+          faceBuffers.textures = [];
+          faceBuffers.textures.push(whiteTexture);
+        }
 
         glBuffers.push(faceBuffers);
       }
@@ -276,6 +295,7 @@ function OBJLoader(gl, gameCanvas) {
       // textures
       if (faceBuffers.textures && faceBuffers.textures.length > 0) {
         for (var j=0; j<faceBuffers.textures.length; j++) {
+          gl.uniform4fv(uniformColor, whiteColor);
           gl.activeTexture(gl.TEXTURE0 + j);
           gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures[j]);
           gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
@@ -283,7 +303,15 @@ function OBJLoader(gl, gameCanvas) {
       }
       else {
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures); 
+        var textureColor = [1, 1, 1, 1];
+        if (faceBuffers.material.diffuse && faceBuffers.material.diffuse.length > 0)
+          textureColor = [
+            faceBuffers.material.diffuse[0],
+            faceBuffers.material.diffuse[1],
+            faceBuffers.material.diffuse[2]
+          ];
+        gl.uniform4fv(uniformColor, textureColor);
+        gl.bindTexture(gl.TEXTURE_2D, faceBuffers.textures);
         gl.uniform1i(gl.getUniformLocation(shaderProgram, "u_sampler"), 0);
       }
 
