@@ -180,15 +180,14 @@ function OBJLoader(gl, gameCanvas) {
           faceBuffers.bufferTextures = bufferTextures;
         }
         else {
-          var whiteCoords = [];
-          for (var i=0; i<100000; i++) {
-            whiteCoords.push(200 + i,  70 + i, 120 + i);
-            //colors.push(200,  70, 120);
+          var noTextureCoords = [];
+          for (var i=0; i<face.verts.length; i++) {
+            noTextureCoords.push(0, 0, 0);
           }
-          var bufferWhite = gl.createBuffer();
-          gl.bindBuffer(gl.ARRAY_BUFFER, bufferWhite);
-          gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(whiteCoords), gl.STATIC_DRAW);
-          faceBuffers.bufferTextures = bufferWhite;
+          var bufferTextures = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, bufferTextures);
+          gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(noTextureCoords), gl.STATIC_DRAW);
+          faceBuffers.bufferTextures = bufferTextures;
        }
 
         // indices
@@ -239,6 +238,7 @@ function OBJLoader(gl, gameCanvas) {
               Math.round(faceBuffers.material.diffuse[2] * 255),
               255
             ];
+            showMessage(solidColorTexture);
           var whitePixel = new Uint8Array(solidColorTexture);
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
           faceBuffers.textures = [];
