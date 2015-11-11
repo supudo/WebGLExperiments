@@ -26,6 +26,7 @@ var slowMo = false;
 var slowMoFrames = 20;
 var limitLog = true;
 var logLength = 10000000;
+var doAnimation = false;
 
 var gl = null;
 

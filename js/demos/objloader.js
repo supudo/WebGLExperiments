@@ -18,6 +18,7 @@ function OBJLoader(gl, gameCanvas) {
   var sceneRotation = 0.0;
   var lastSceneUpdateTime = 0;
 
+  var mouseRotator;
   var mvMatrix, perspectiveMatrix;
   var currentScene;
 
@@ -145,6 +146,9 @@ function OBJLoader(gl, gameCanvas) {
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
+
+    mouseRotator = new SimpleRotator(gameCanvas, this.drawScene.bind(this));
+    mouseRotator.setView([2,2,5], [0,1,0], 6);
 
     //printJSONData(currentScene);
   };
@@ -449,7 +453,12 @@ function OBJLoader(gl, gameCanvas) {
     gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.flatten()));
 
     var mvUniform = gl.getUniformLocation(shaderProgram, "u_MVMatrix");
-    gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
+    if (doAnimation)
+      gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
+    else {
+      var modelview = mouseRotator.getViewMatrix();  
+      gl.uniformMatrix4fv(mvUniform, false, modelview);
+    }
 
     //var normalMatrix = mvMatrix.inverse();
     //normalMatrix = normalMatrix.transpose();
