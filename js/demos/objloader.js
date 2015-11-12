@@ -56,8 +56,8 @@ function OBJLoader(gl, gameCanvas) {
     this.showLoading();
 
     objLoader = new WebGLObjLoader(gl);
-    //objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
-    objLoader.parseObject('../../objects', 'text.obj', '/objects');
+    objLoader.parseObject('../../objects', 'planet2.obj', '/objects');
+    //objLoader.parseObject('../../objects', 'text.obj', '/objects');
     currentScene = objLoader.objScene;
     if (currentScene.objHasTextureImages)
       objLoader.preloadTextureImages(this.imageTexturesLoaded.bind(this));
